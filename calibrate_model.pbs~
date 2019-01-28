@@ -1,0 +1,13 @@
+#PBS -N fit_mle
+#PBS -l nodes=1:ppn=20
+#PBS -l walltime=24:00:00
+#PBS -j oe
+#PBS -A kzk10_a_g_sc_default
+#PBS -o fit_mle.o
+#PBS -t 1-3
+
+cd $PBS_O_WORKDIR
+
+source activate r
+
+Rscript R/mcmc_master.R
