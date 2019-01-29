@@ -3,7 +3,7 @@ library(grid)
 library(gridExtra)
 
 # compute residuals for each output
-model_out <- readRDS('temp-ar.rds')
+model_out <- readRDS(file.path('output', paste0('mle-', type, '.rds')))
 a <- model_out[['mle']]$optim$bestmem[match(c('a_pop', 'a_prod', 'a_emis'), model_out[['parnames']])] # AR coefficient
 names(a) <- c('pop', 'prod', 'emissions')
 
@@ -36,6 +36,11 @@ p[[4]] <- ggplot(r[['pop']]) + geom_point(aes(x=year, y=residuals)) + ggtitle('R
 p[[5]] <- ggplot(r[['prod']]) + geom_point(aes(x=year, y=residuals)) + ggtitle('Residuals') + scale_x_continuous('Year') + scale_y_continuous('Trillions 2011US$')
 p[[6]] <- ggplot(r[['emissions']]) + geom_point(aes(x=year, y=residuals)) + ggtitle('Residuals')  + scale_x_continuous('Year') + scale_y_continuous('Gt C')
 
-pdf('figures/ar-resid.pdf')
+if (type == 'ar') {
+  pdf('figures/ar-resid.pdf')
+} else {
+  pdf('figures/mvar-resid.pdf')
+}
 do.call("grid.arrange", c(p, ncol=3))
 dev.off()
+ff()

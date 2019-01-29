@@ -57,11 +57,11 @@ log_lik_ar <- function(pars, parnames, dat, start = 1700, end = 2017) {
   # compute residuals for the log of each output
   r <- list()
   pop <- merge(dat[['pop']], model_out[, c('year', 'P')], by='year')
-  r[['pop']] <- log(pop$pop) - log(pop$P)
+  r[['pop']] <- pop$pop - pop$P
   prod <- merge(dat[['prod']], model_out[, c('year', 'Q')], by='year')
-  r[['prod']] <- log(prod$prod) - log(prod$Q)
+  r[['prod']] <- prod$prod - prod$Q
   emis <- merge(dat[['emissions']], model_out[, c('year', 'C')], by='year')
-  r[['emissions']] <- log(emis$emissions) - log(emis$C)
+  r[['emissions']] <- emis$emissions - emis$C
   
   # extract likelihood parameters
   a <- pars[match(c('a_pop', 'a_prod', 'a_emis'), parnames)] # AR coefficient
@@ -87,24 +87,24 @@ log_lik_mvar <- function(pars, parnames, dat, start = 1700, end = 2017) {
   # compute residuals for the log of each output
   r <- list()
   pop <- merge(dat[['pop']], model_out[, c('year', 'P')], by='year')
-  r[['pop']] <- log(pop$pop) - log(pop$P)
+  r[['pop']] <- pop$pop - pop$P
   prod <- merge(dat[['prod']], model_out[, c('year', 'Q')], by='year')
-  r[['prod']] <- log(prod$prod) - log(prod$Q)
+  r[['prod']] <- prod$prod - prod$Q
   emis <- merge(dat[['emissions']], model_out[, c('year', 'C')], by='year')
-  r[['emissions']] <- log(emis$emissions) - log(emis$C)
+  r[['emissions']] <- emis$emissions - emis$C
   
   # extract likelihood parameters
   a <- pars[match(c('a_pop', 'a_prod', 'a_emis'), parnames)] # AR coefficient
   names(a) <- c('pop', 'prod', 'emissions')
-  eta <- pars[match(c('eta_pop', 'eta_prod', 'eta_emis'), parnames)] # Cholesky diagonal terms
-  rho <- pars[match(c('rho_1', 'rho_2', 'rho_3'), parnames)] # Cholesky off-diagonal terms
+  eta <- pars[match(c('eta_pop', 'eta_prod', 'eta_emis'), parnames)] # Cholesky diagonals
+  rho <- pars[match(c('rho_1', 'rho_2', 'rho_3'), parnames)] # Cholesky off-diagonals
   
   # compute log-likelihood
-  # compute the covariance matrix from the Cholesky factor
-  L.vec <- c(eta[1], rho[1], rho[2], eta[2], rho[3], eta[3]) # assemble Cholesky factor parameters into a vector, based on column-wise assignment
+  # construct the covariance matrix from the Cholesky terms
+  L.vec <- c(eta[1], rho[1], rho[2], eta[2], rho[3], eta[3]) # assemble Cholesky terms into a vector
   L <- matrix(0, nrow=length(names(a)), ncol=length(names(a)))
   L[which(lower.tri(L, diag=TRUE))] <- L.vec # construct the Cholesky factor
-  Sigma <- L %*% t(L) # compute the covariance matrix
+  Sigma <- L %*% t(L) # compute the covariance matrix from the Cholesky factor
   
   # compute AR residuals for data series
   compute_ar_res <- function(datname) {
@@ -112,8 +112,9 @@ log_lik_mvar <- function(pars, parnames, dat, start = 1700, end = 2017) {
   }
   res <- vapply(names(r), compute_ar_res, numeric(length(r[[1]])-1))
   
-  # compute log-likelihood for each set of observations and return sum
+  # compute total log-likelihood for each set of observations
   sum(apply(res, 1, dmvnorm, sigma = Sigma, log = TRUE))
+
 }
 
 neg_log_lik <- function(pars, parnames, dat, lik_fun) {

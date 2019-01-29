@@ -2,7 +2,7 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 
-model_out <- readRDS('temp-iid.rds')
+model_out <- readRDS('output/mle-iid.rds')
 
 # compute residuals for each output
 r <- list()

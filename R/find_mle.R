@@ -52,9 +52,7 @@ source(file.path(R_path, 'likelihood.R'))
 
 lbound <- c(0.0001, 0, 6.9, 0.3, 0.5, 0.1, 0.01, 0.0007, 5.3, 0.4, 0, 0, 0, 1700, 1700, 2010, 0.005, 0, 0, 0, 0.85, 0.85, 0.85, 0, 0, 0, -1, -1, -1)
 ubound <- c(0.15, 100, 15, 1, 0.9,  0.3, 0.14, 0.0212, 16.11, 0.7, 3, 0.5, 0.5, 2100, 2100, 2500, 0.2, 100, 100, 100, 1, 1, 1, 0.2, 0.2, 0.2, 1, 1, 1)
-mle <- DEoptim(neg_log_lik, lbound[match(parnames, all_parnames)], ubound[match(parnames, all_parnames)], control=list(NP=60, itermax=5000, F=0.75, CR=0.95, parallelType=1, cluster=cl, parVar=c('parnames', 'dat', 'update_pop', 'update_prod', 'update_emis', 'mod', paste0('log_lik_', type))), parnames=parnames, dat=dat, lik_fun=paste0('log_lik_', type))
-stopCluster(cl)
-print('Stopping cluster...')
+mle <- DEoptim(neg_log_lik, lbound[match(parnames, all_parnames)], ubound[match(parnames, all_parnames)], control=list(NP=10*length(parnames), itermax=5000, F=0.65, CR=0.95, trace=TRUE, parallelType=1, cluster=cl, parVar=c('parnames', 'dat', 'update_pop', 'update_prod', 'update_emis', 'mod', paste0('log_lik_', type))), parnames=parnames, dat=dat, lik_fun=paste0('log_lik_', type))
 
 model_out <- list()
 model_out[['bestfit']] <- mod(mle$optim$bestmem, parnames)
@@ -67,13 +65,10 @@ saveRDS(model_out, file.path(output_path, paste('mle-', type, '.rds', sep='')))
 
 if (type == 'iid') {
   plot_type <- 'iid'
-} else {
+} else if (grepl('ar', type)) {
   plot_type <- 'ar'
 }
 source(file.path(R_path, paste('plot_', plot_type, '_residuals.R', sep='')))
-s
-model_out[['type']] <- type
 
-saveRDS(model_out, file.path('output', paste('temp-', type, '.rds', sep='')))
-
-source(file.path('R', paste('plot_', type, '_residuals.R', sep='')))
+stopCluster(cl)
+print('Stopping cluster...')

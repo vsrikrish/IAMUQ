@@ -30,4 +30,4 @@ colnames(em_dat) <- c('year', 'emissions')
 
 dat <- list(pop=po_dat, prod=pr_dat, emissions=em_dat)
 
-saveRDS(dat, file.path(output_path, 'calib_data.rds'))
+saveRDS(dat, file.path(data_path, 'calib_data.rds'))
