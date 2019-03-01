@@ -51,7 +51,6 @@ mod <- function(pars, parnames, start=1700, end=2017) {
   tau <- pars[match(c('tau2', 'tau3', 'tau4'), parnames)]
   rho <- pars[match(c('rho2', 'rho3'), parnames)]
   
-  
   # compute technology penetration values for technologies with non-zero emissions
   gamma <- cbind(
     1 / (1 + exp(-kappa * (yr - tau[1]))) - 1 / (1 + exp(-kappa * (yr - tau[2]))),
