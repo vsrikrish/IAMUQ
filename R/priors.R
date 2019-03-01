@@ -15,14 +15,12 @@
 #########################################################
 
 set_prior_params <- function(parnames) {
-  priors <- vector('list', length(parnames))
-  names(priors) <- parnames
-  
+
   # initialize prior parameter data frame
-  prior_df <- data.frame(name=parnames, type=character(length(parnames)), lower=numeric(length(parnames)), upper=numeric(length(parnames)))
+  prior_df <- data.frame(name=parnames, type=character(length(parnames)), lower=numeric(length(parnames)), upper=numeric(length(parnames)), stringsAsFactors=FALSE)
   
   # loop over data frame rows and fill in values
-  for (i in 1:length() {
+  for (i in 1:nrow(prior_df)) {
     name <- prior_df[i, 'name']
     if (name == 'psi1') {
       prior_df[i, 'type'] <- 'uniform'
@@ -94,16 +92,16 @@ set_prior_params <- function(parnames) {
       prior_df[i, 'upper'] <- 0.2
     } else if (grepl('rho', name)) {
       prior_df[i, 'type'] <- 'uniform'
-      prior_df[i, 'lower'] <- 0.85
+      prior_df[i, 'lower'] <- 0.4
       prior_df[i, 'upper'] <- 1
     } else if (grepl('sigma', name)) {
-      prior_df[i, 'type'] <- 'half-Cauchy'
+      prior_df[i, 'type'] <- 'log-normal'
       prior_df[i, 'lower'] <- 0
       prior_df[i, 'upper'] <- Inf
     } else if (grepl('eps', name)) {
-      prior_df[i, 'type'] <- 'uniform'
+      prior_df[i, 'type'] <- 'log-normal'
       prior_df[i, 'lower'] <- 0
-      prior_df[i, 'upper'] <- 0.1
+      prior_df[i, 'upper'] <- Inf
     }
     
   }
@@ -125,7 +123,7 @@ set_prior_params <- function(parnames) {
 #    frame parameters become the min and max            #
 #    parameters. If the prior is normal, they're the    #
 #    bounds of the 95% confidence interval. If the      #
-#    prior is half-Cauchy, they're irrelevant, as we    #
+#    prior is half-normal, they're irrelevant, as we    #
 #    just use the standard half-Cauchy.                 #
 #########################################################
 create_prior_list <- function(parnames) {
@@ -138,16 +136,19 @@ create_prior_list <- function(parnames) {
     priors[[name]] <- list(type=prior_df[i, 'type'])
     if (priors[[name]][['type']] == 'uniform') {
       priors[[name]][['dens.fun']] <- 'dunif'
+      priors[[name]][['quant.fun']] <- 'qunif'
       priors[[name]][['min']] <- prior_df[i, 'lower']
       priors[[name]][['max']] <- prior_df[i, 'upper']
     } else if (priors[[name]][['type']] == 'normal') {
       priors[[name]][['dens.fun']] <- 'dnorm'
-      priors[[name]][['mean']] <- mean(c(priors[[name]][['lower'], priors[[name]][['upper']]))
-      priors[[name]][['sd']] <- (priors[[name]][['upper']] - priors[[name]][['lower']])/(qnorm(0.975) - qnorm(0.025))
-    } else if (priors[[name]][['type']] == 'half-Cauchy') {
-      priors[[name]][['dens.fun']] <- function(x) {2*dcauchy(x)}
-      priors[[name]][['location']] <- 0
-      priors[[name]][['scale']] <- 1
+      priors[[name]][['quant.fun']] <- 'qnorm'
+      priors[[name]][['mean']] <- mean(c(prior_df[i, 'lower',], prior_df[i, 'upper']))
+      priors[[name]][['sd']] <- (prior_df[i, 'upper'] - prior_df[i, 'lower'])/(qnorm(0.975) - qnorm(0.025))
+    } else if (priors[[name]][['type']] == 'log-normal') {
+      priors[[name]][['dens.fun']] <- 'dlnorm'
+      priors[[name]][['quant.fun']] <- 'qlnorm'
+      priors[[name]][['meanlog']] <- -1
+      priors[[name]][['sdlog']] <- 1
     }
   }
   
