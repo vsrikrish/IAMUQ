@@ -1,14 +1,13 @@
 ##########################################################
 # likelihood.R                                           #
-#   This file contains the code for the likelihood       #
-#     functions                                          #
+#   This file contains the code for the likelihood,      #
+#     prior, and posterior functions                     #
 ##########################################################
-
-library(mvtnorm)
 
 R_path <- 'R'
 source(file.path(R_path, 'model.R'))
 
+## evaluate log-prior densities
 log_pri <- function(pars, parnames, priors) {
 
    # this function evaluates the log-prior density for a given parameter
@@ -28,6 +27,7 @@ log_pri <- function(pars, parnames, priors) {
   sum(lp)
 }
 
+## calculate the model residuals
 residuals <- function(pars, parnames, dat, start = 1700, end = 2017) {
   # run model
   model_out <- mod(pars, parnames, start, end)
@@ -45,6 +45,7 @@ residuals <- function(pars, parnames, dat, start = 1700, end = 2017) {
   r
 }
 
+## calculate AR1 residuals
 ar_residuals <- function(pars, parnames, dat, start=1700, end = 2017) {
   r <- residuals(pars, parnames, dat, start, end)
 
@@ -53,7 +54,7 @@ ar_residuals <- function(pars, parnames, dat, start=1700, end = 2017) {
   lapply(names(rho), function(n) {r[[n]][-1] - rho[n]*r[[n]][-length(r[[n]])]})
 }
 
-# this function evaluates the log-likelihood under the assumption of iid residuals
+## evaluates the log-likelihood under the assumption of iid residuals
 log_lik_iid <- function(pars, parnames, dat, start = 1700, end = 2017) {
 
   r <- residuals(pars, parnames, dat, start, end)
@@ -69,6 +70,7 @@ log_lik_iid <- function(pars, parnames, dat, start = 1700, end = 2017) {
   sum(vapply(names(sigma), log_lik, numeric(1)))
 }
 
+## evaluates the log-likelihood with AR(1) model errors and iid observation errors
 log_lik_ar <- function(pars, parnames, dat, start = 1700, end = 2017) {
   # compute residuals
   r <- residuals(pars, parnames, dat, start, end)
@@ -97,55 +99,7 @@ log_lik_ar <- function(pars, parnames, dat, start = 1700, end = 2017) {
   sum(vapply(names(rho), log_lik, numeric(1)))
 }
 
-log_lik_ar2 <- function(pars, parnames, dat, start = 1700, end = 2017) {
-  # compute residuals
-  r <- residuals(pars, parnames, dat, start, end)
-
-  # extract likelihood parameters
-  rho <- pars[match(c('rho_pop', 'rho_prod', 'rho_emis'), parnames)] # AR model error coefficient
-  names(rho) <- c('pop', 'prod', 'emissions')
-  sigma <- pars[match(c('sigma_pop', 'sigma_prod', 'sigma_emis'), parnames)] # AR model error sd
-  names(sigma) <- c('pop', 'prod', 'emissions')
-
-  # compute log-likelihoods
-  log_lik <- function(datname) {
-    # whiten residuals
-    res <- r[[datname]][-1] - rho[datname]*r[[datname]][-length(r[[datname]])]
-    sum(dnorm(res, sd=sigma[datname], log=TRUE))
-  }
-  # return sum of log-likelihood across data
-  sum(vapply(names(rho), log_lik, numeric(1)))
-}
-
-log_lik_mvar <- function(pars, parnames, dat, start = 1700, end = 2017) {
-
-  # compute residuals
-  r <- residuals(pars, parnames, dat, start, end  )
-
-  # extract likelihood parameters
-  a <- pars[match(c('a_pop', 'a_prod', 'a_emis'), parnames)] # AR coefficient
-  names(a) <- c('pop', 'prod', 'emissions')
-  eta <- pars[match(c('eta_pop', 'eta_prod', 'eta_emis'), parnames)] # Cholesky diagonals
-  rho <- pars[match(c('rho_1', 'rho_2', 'rho_3'), parnames)] # Cholesky off-diagonals
-
-  # compute log-likelihood
-  # construct the covariance matrix from the Cholesky terms
-  L.vec <- c(eta[1], rho[1], rho[2], eta[2], rho[3], eta[3]) # assemble Cholesky terms into a vector
-  L <- matrix(0, nrow=length(names(a)), ncol=length(names(a)))
-  L[which(lower.tri(L, diag=TRUE))] <- L.vec # construct the Cholesky factor
-  Sigma <- L %*% t(L) # compute the covariance matrix from the Cholesky factor
-
-  # compute AR residuals for data series
-  compute_ar_res <- function(datname) {
-    r[[datname]][-1] - a[datname] * r[[datname]][-length(r[[datname]])]
-  }
-  res <- vapply(names(r), compute_ar_res, numeric(length(r[[1]])-1))
-
-  # compute total log-likelihood for each set of observations
-  sum(apply(res, 1, dmvnorm, sigma = Sigma, log = TRUE))
-
-}
-
+## check the prior constraints on parameter values
 check_constraints <- function(pars, parnames) {
    # check for parameter constraints; if not satisfied, return -Inf
    delta <- pars[match('delta', parnames)]
@@ -163,6 +117,7 @@ check_constraints <- function(pars, parnames) {
 
 }
 
+## compute the negative log-likelihood (for use with DEoptim)
 neg_log_lik <- function(pars, parnames, dat, lik_fun) {
    # check for parameter constraints; if not satisfied, return Inf
    if (!check_constraints(pars, parnames)) {
@@ -175,6 +130,8 @@ neg_log_lik <- function(pars, parnames, dat, lik_fun) {
   -1*ll
 }
 
+
+## compute the log-posterior density
 log_post <- function(pars, parnames, priors, dat, lik_fun) {
   # check for parameter constraints and return -Inf if not satisfied
    if (!check_constraints(pars, parnames))  {
