@@ -11,8 +11,9 @@ if (aid == '') {
   if (!exists('type')) {
     args <- commandArgs(trailingOnly=TRUE)
     type <- args[1]
-    expert <- as.logical(args[2])
+    pi_flag <- as.logical(args[2])
   }
+  trace_flag <- TRUE
 } else {
   types <- c('iid', 'ar')
   expert <- c(TRUE, FALSE)
@@ -20,8 +21,10 @@ if (aid == '') {
   case <- cases[as.numeric(aid),]
   type <- case[, 'types']
   pi_flag <- case[, 'expert']
+  trace_flag <- FALSE
 }
 
+print('Reading in MLE...')
 # read in MLE estimate to start MCMC chain as well as data
 mle_out <- readRDS(paste0('output/mle-', type, '.rds'))
 mle <- mle_out$mle$optim$bestmem
@@ -52,14 +55,15 @@ for (name in parnames) {
   }
 }
 
-adapt_start <- max(1000, round(0.05*n_iter)) # when to start stepsize adaptation
+adapt_start <- max(500, round(0.05*n_iter)) # when to start stepsize adaptation
 
+print('starting MCMC...')
 # set up cluster if necessary and run MCMC chain(s)
 if (n_cpu > 1) {
   mcmc_out <- MCMC.parallel(log_post, n_iter, init=mle, n.chain=n_chain, n.cpu=n_cpu, scale=stepsize, gamma=0.51, list=TRUE, n.start=adapt.start, acc.rate=rate_accept, packages=c('mvtnorm'), parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', type), expert=pi_flag)
 } else {
   # run MCMC chain(s)
-  mcmc_out <- MCMC(log_post, n_iter, init=mle, scale=stepsize, gamma=0.51, list=TRUE, n.start=adapt_start, acc.rate=rate_accept, parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', type), expert=pi_flag)
+  mcmc_out <- MCMC(log_post, n_iter, init=mle, scale=stepsize, gamma=0.51, list=TRUE, n.start=adapt_start, acc.rate=rate_accept, showProgressBar=trace_flag, parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', type), expert=pi_flag)
 }
 
 mcmc_out$dat <- dat
@@ -68,9 +72,9 @@ mcmc_out$mle <- mle
 mcmc_out$type <- type
 
 if (pi_flag) {
-  filename_save <- paste0('output/log/mcmc_prelim-pi-', type, '.rds') 
+  filename_save <- paste0('output/mcmc_prelim-pi-', type, '.rds') 
 } else {
-  filename_save <- paste0('output/log/mcmc_prelim-nopi-', type, '.rds') 
+  filename_save <- paste0('output/mcmc_prelim-nopi-', type, '.rds') 
 }
 
 saveRDS(mcmc_out, filename_save)
