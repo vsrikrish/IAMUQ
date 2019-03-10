@@ -66,11 +66,11 @@ residuals <- function(pars, parnames, model_out, dat) {
   # compute residuals for each output
   r <- list()
   pop <- merge(dat[['pop']], model_out[, c('year', 'P')], by='year')
-  r[['pop']] <- pop$pop - pop$P
+  r[['pop']] <- log(pop$pop) - log(pop$P)
   prod <- merge(dat[['prod']], model_out[, c('year', 'Q')], by='year')
-  r[['prod']] <- prod$prod - prod$Q
+  r[['prod']] <- log(prod$prod) - log(prod$Q)
   emis <- merge(dat[['emissions']], model_out[, c('year', 'C')], by='year')
-  r[['emissions']] <- emis$emissions - emis$C
+  r[['emissions']] <- log(emis$emissions) - log(emis$C)
   
   # return residuals
   r
@@ -167,8 +167,12 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, expert=FALSE) {
   if (lpri == -Inf) {
     return(-Inf)
   }
-  # run model to 2100
-  model_out <- mod(pars, parnames, start=1700, end=2100)
+  # run model to end date, which is 2500
+  model_out <- mod(pars, parnames, start=1700, end=2500)
+  # check for fossil fuel constraint
+  if (cum_co2(model_out, start=1700, end=2500) > 6000) {
+     return(-Inf)
+  }
   ll <- match.fun(lik_fun)(pars, parnames, model_out, dat) # evaluate likelihood
   
   lpost <- lpri + ll # store sum of log-likelihood and log-prior
