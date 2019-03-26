@@ -61,6 +61,40 @@ log_pri <- function(pars, parnames, priors) {
   sum(lp)
 }
 
+
+## check the prior constraints on parameter values
+check_param_constraints <- function(pars, parnames) {
+  # check for parameter constraints; if not satisfied, return -Inf
+  delta <- pars[match('delta', parnames)]
+  s <- pars[match('s', parnames)]
+  rho <- pars[match(c('rho2', 'rho3'), parnames)]
+  tau <- pars[match(c('tau2', 'tau3', 'tau4'), parnames)]
+  # check if the earlier observational errors are larger than the later ones
+  obs_flag <- TRUE
+  if ('eps2_pop' %in% parnames) {
+    eps1 <- pars[match(c('eps1_pop', 'eps1_prod', 'eps1_emis'), parnames)]
+    eps2 <- pars[match(c('eps2_pop', 'eps2_prod', 'eps2_emis'), parnames)]
+    eps <- rbind(eps1, eps2)
+    obs_flag <- all(apply(eps, 2, function(x) x[1] > x[2]))
+  }
+  # check if the eigenvalues of the VAR coefficient matrix are within the unit circle (for stability of the VAR process)
+  eig_flag <- TRUE
+  if ('a_21' %in% parnames) {
+    a <- pars[match(c('a_pop', 'a_prod', 'a_emis', 'a_21', 'a_31', 'a_12', 'a_23', 'a_13', 'a_32'), parnames)]
+    ev <- eigen(matrix(a, ncol=sqrt(length(y), nrow=sqrt(length(y)))))$values
+    eig_flag <- all(vapply(ev, abs, numeric(1)) < 1)
+  }
+  
+  (delta < s) && (rho[1] >= rho[2]) && (all(tau == cummax(tau))) && obs_flag && eig_flag
+  
+}
+
+## check if a fossil fuel emissions constraint is satisfied
+check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh) {
+  cum_co2(model_out, start, end) <= thresh
+}
+
+
 ## calculate the model residuals
 residuals <- function(pars, parnames, model_out, dat) {
   # compute residuals for each output
@@ -78,6 +112,10 @@ residuals <- function(pars, parnames, model_out, dat) {
 
 ## evaluates the log-likelihood under the assumption of iid residuals
 log_lik_iid <- function(pars, parnames, model_out, dat) {
+  # check for fossil fuel constraint
+  if (!check_fossil_constraint(model_out, start=1700, end=2500, thresh=6000)) {
+    return(-Inf)
+  }
   
   r <- residuals(pars, parnames, model_out, dat)
   
@@ -94,12 +132,17 @@ log_lik_iid <- function(pars, parnames, model_out, dat) {
 
 ## evaluates the log-likelihood with AR(1) model errors and iid observation errors
 log_lik_ar <- function(pars, parnames, model_out, dat) {
+  # check fossil fuel constraint
+  if (!check_fossil_constraint(model_out, start=1700, end=2500, thresh=6000)) {
+    return(-Inf)
+  }
+  
   # compute residuals
   r <- residuals(pars, parnames, model_out, dat)
   
   # extract likelihood parameters
-  rho <- pars[match(c('rho_pop', 'rho_prod', 'rho_emis'), parnames)] # AR model error coefficient
-  names(rho) <- c('pop', 'prod', 'emissions')
+  a <- pars[match(c('a_pop', 'a_prod', 'a_emis'), parnames)] # AR model error coefficient
+  names(a) <- c('pop', 'prod', 'emissions')
   sigma <- pars[match(c('sigma_pop', 'sigma_prod', 'sigma_emis'), parnames)] # AR model error sd
   names(sigma) <- c('pop', 'prod', 'emissions')
   eps <- pars[match(c('eps1_pop', 'eps1_prod', 'eps1_emis'), parnames)] # observation error coefficient
@@ -112,37 +155,68 @@ log_lik_ar <- function(pars, parnames, model_out, dat) {
     n <- length(r[[datname]])
     H <- abs(outer(1:n, 1:n, '-'))
     
-    V <- sigma[datname]^2 / (1-rho[datname]^2) * rho[datname]^H # variance for model errors
+    V <- sigma[datname]^2 / (1-a[datname]^2) * a[datname]^H # variance for model errors
     epv <- c(rep(eps[datname]^2, (sum(dat[[datname]]$year < 1950))), rep(0, sum(dat[[datname]]$year >= 1950)))
     Sigma <- V + diag(epv)
     dmvnorm(r[[datname]], sigma = V, log = TRUE) # compute log-likelihood
   }
   # return sum of log-likelihood across data
-  sum(vapply(names(rho), log_lik, numeric(1)))
+  sum(vapply(names(a), log_lik, numeric(1)))
 }
 
-## check the prior constraints on parameter values
-check_constraints <- function(pars, parnames) {
-  # check for parameter constraints; if not satisfied, return -Inf
-  delta <- pars[match('delta', parnames)]
-  s <- pars[match('s', parnames)]
-  rho <- pars[match(c('rho2', 'rho3'), parnames)]
-  tau <- pars[match(c('tau2', 'tau3', 'tau4'), parnames)]
-  if (any(grepl('eps2', parnames))) {
-    eps1 <- pars[match(c('eps1_pop', 'eps1_prod', 'eps1_emis'), parnames)]
-    eps2 <- pars[match(c('eps2_pop', 'eps2_prod', 'eps2_emis'), parnames)]
-    eps <- rbind(eps1, eps2)
-    return((delta >= s) || (rho[1] < rho[2]) || (any(tau != cummax(tau))) || (any(apply(eps, 2, function(x) x[1] < x[2]))))
+## evaluates the log-likelihood with AR(1) model errors and iid observation errors
+log_lik_var <- function(pars, parnames, model_out, dat) {
+  # check fossil fuel constraint
+  if (!check_fossil_constraint(model_out, start=1700, end=2500, thresh=6000)) {
+    return(-Inf)
   }
   
-  (delta < s) && (rho[1] >= rho[2]) && (all(tau == cummax(tau)))
+  # compute residuals
+  r <- residuals(pars, parnames, model_out, dat)
+  # create vectorized residual vector
+  r_vec <- as.numeric(do.call(rbind,r))
   
+  # extract likelihood parameters
+  a <- pars[match(c('a_pop', 'a_prod', 'a_emis', 'a_21', 'a_31', 'a_12', 'a_23', 'a_13', 'a_32'), parnames)] # VAR model error coefficient
+  sigma <- pars[match(c('sigma_pop', 'sigma_prod', 'sigma_emis'), parnames)] # AR model error sd
+  names(sigma) <- c('pop', 'prod', 'emissions')
+  eps <- pars[match(c('eps1_pop', 'eps1_prod', 'eps1_emis'), parnames)] # observation error coefficient
+  names(eps) <- c('pop', 'prod', 'emissions')
+  #  eps2 <- pars[match(c('eps2_pop', 'eps2_prod', 'eps2_emis'), parnames)] # observation error coefficient
+  
+  # construct VAR coefficient matrix
+  A <- matrix(a, nrow=length(dat), ncol=length(dat))
+  # compute powers of A for autocovariance matrix computation
+  n <- length(r[[1]])
+  A_rep <- replicate(n, A, simplify=FALSE) # repeat A n times
+  A_rep[[1]] <- diag(1, nrow=nrow(A), ncol=ncol(A)) # we want powers from 0 to n-1, not 1 to n
+  A_pow <- Reduce('%*%', A_rep, accumulate=TRUE) # compute powers of A
+  
+  H <- abs(outer(1:n, 1:n, '-')) # matrix of powers as they should be combined
+  A_bind <- matrix(0, nrow=nrow(A)*n, ncol=ncol(A)*n) # initialize storage
+  # bind powers together
+  for (i in 1:n) {
+    for (j in 1:n) {
+      A_bind[(nrow(A)*(i-1)+1):(nrow(A)*i), (ncol(A)*(j-1)+1):(ncol(A)*j)] <- A_pow[[(H[i, j] + 1)]]
+    }
+  }
+  
+  # compute covariance matrix of the residuals for each time
+  W <- diag(sigma^2)  # construct covariance matrix of the innovations
+  Sigma_x_vec <- solve(diag(1, nrow(A)^2) - kronecker(A, A)) %*% as.numeric(W)
+  Sigma_x <- matrix(Sigma_x_vec, nrow=nrow(A), ncol=ncol(A))
+  # compute joint autocovariance matrix of residuals
+  Sigma <- A_bind %*% kronecker(diag(1, n), Sigma_x)
+  Sigma <- Sigma + diag(rep(eps, n))
+  
+  # compute log-likelihood
+  dmvnorm(r_vec, sigma = Sigma, log = TRUE)
 }
 
 ## compute the negative log-likelihood (for use with DEoptim)
 neg_log_lik <- function(pars, parnames, dat, lik_fun) {
   # check for parameter constraints; if not satisfied, return Inf
-  if (!check_constraints(pars, parnames)) {
+  if (!check_param_constraints(pars, parnames)) {
     return(Inf)
   }
   
@@ -157,7 +231,7 @@ neg_log_lik <- function(pars, parnames, dat, lik_fun) {
 ## compute the log-posterior density
 log_post <- function(pars, parnames, priors, dat, lik_fun, expert=FALSE) {
   # check for parameter constraints and return -Inf if not satisfied
-  if (!check_constraints(pars, parnames))  {
+  if (!check_param_constraints(pars, parnames))  {
     return(-Inf)
   }
   
@@ -169,10 +243,6 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, expert=FALSE) {
   }
   # run model to end date, which is 2500
   model_out <- mod(pars, parnames, start=1700, end=2500)
-  # check for fossil fuel constraint
-  if (cum_co2(model_out, start=1700, end=2500) > 6000) {
-     return(-Inf)
-  }
   ll <- match.fun(lik_fun)(pars, parnames, model_out, dat) # evaluate likelihood
   
   lpost <- lpri + ll # store sum of log-likelihood and log-prior
