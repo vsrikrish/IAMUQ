@@ -184,6 +184,11 @@ log_lik_var <- function(pars, parnames, model_out, dat) {
   names(eps) <- c('pop', 'prod', 'emissions')
   #  eps2 <- pars[match(c('eps2_pop', 'eps2_prod', 'eps2_emis'), parnames)] # observation error coefficient
   
+  # compute covariance matrix of the residuals for each time
+  W <- diag(sigma^2)  # construct covariance matrix of the innovations
+  Sigma_x_vec <- solve(diag(1, nrow(A)^2) - kronecker(A, A)) %*% as.numeric(W)
+  Sigma_x <- matrix(Sigma_x_vec, nrow=nrow(A), ncol=ncol(A))
+  
   # construct VAR coefficient matrix
   A <- matrix(a, nrow=length(dat), ncol=length(dat))
   # compute powers of A for autocovariance matrix computation
@@ -191,22 +196,21 @@ log_lik_var <- function(pars, parnames, model_out, dat) {
   A_rep <- replicate(n, A, simplify=FALSE) # repeat A n times
   A_rep[[1]] <- diag(1, nrow=nrow(A), ncol=ncol(A)) # we want powers from 0 to n-1, not 1 to n
   A_pow <- Reduce('%*%', A_rep, accumulate=TRUE) # compute powers of A
+  A_Sigma_pow <- lapply(A_pow, function(M) M %*% Sigma_x) # multiple through by Sigma_x
   
   H <- abs(outer(1:n, 1:n, '-')) # matrix of powers as they should be combined
-  A_bind <- matrix(0, nrow=nrow(A)*n, ncol=ncol(A)*n) # initialize storage
-  # bind powers together
+  Sigma <- matrix(0, nrow=nrow(A)*n, ncol=ncol(A)*n) # initialize storage for joint autocovariance matrix
+  # bind blocks together
   for (i in 1:n) {
     for (j in 1:n) {
-      A_bind[(nrow(A)*(i-1)+1):(nrow(A)*i), (ncol(A)*(j-1)+1):(ncol(A)*j)] <- A_pow[[(H[i, j] + 1)]]
+      if (i >= j) {
+        Sigma[(nrow(A)*(i-1)+1):(nrow(A)*i), (ncol(A)*(j-1)+1):(ncol(A)*j)] <- A_Sigma_pow[[(H[i, j] + 1)]]
+      } else {
+        Sigma[(nrow(A)*(i-1)+1):(nrow(A)*i), (ncol(A)*(j-1)+1):(ncol(A)*j)] <- t(A_Sigma_pow[[(H[i, j] + 1)]])
+      }
     }
   }
-  
-  # compute covariance matrix of the residuals for each time
-  W <- diag(sigma^2)  # construct covariance matrix of the innovations
-  Sigma_x_vec <- solve(diag(1, nrow(A)^2) - kronecker(A, A)) %*% as.numeric(W)
-  Sigma_x <- matrix(Sigma_x_vec, nrow=nrow(A), ncol=ncol(A))
-  # compute joint autocovariance matrix of residuals
-  Sigma <- A_bind %*% kronecker(diag(1, n), Sigma_x)
+  # add observation errors along diagonal
   Sigma <- Sigma + diag(rep(eps, n))
   
   # compute log-likelihood
