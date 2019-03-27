@@ -90,9 +90,9 @@ set_prior_params <- function(parnames) {
       prior_df[i, 'type'] <- 'uniform'
       prior_df[i, 'lower'] <- 0.005
       prior_df[i, 'upper'] <- 0.2
-    } else if (grepl('rho', name)) {
-      prior_df[i, 'type'] <- 'uniform'
-      prior_df[i, 'lower'] <- 0.4
+    } else if (grepl('a', name)) {
+      prior_df[i, 'type'] <- 'normal'
+      prior_df[i, 'lower'] <- -1
       prior_df[i, 'upper'] <- 1
     } else if (grepl('sigma', name)) {
       prior_df[i, 'type'] <- 'log-normal'
@@ -103,7 +103,6 @@ set_prior_params <- function(parnames) {
       prior_df[i, 'lower'] <- 0
       prior_df[i, 'upper'] <- Inf
     }
-    
   }
   
   prior_df
@@ -149,6 +148,8 @@ create_prior_list <- function(parnames) {
       priors[[name]][['quant.fun']] <- 'qlnorm'
       priors[[name]][['meanlog']] <- -1
       priors[[name]][['sdlog']] <- 1
+    } else if (priors[[name]][['type']] == 'LKJ') {
+      priors[[name]][['dens.fun']] <- 'dlkjcorr_chol_log'
     }
   }
   
