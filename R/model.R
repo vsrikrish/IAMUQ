@@ -4,6 +4,8 @@
 #     population-economic-emissions model.               #
 ##########################################################
 
+sourceCpp('src/model.cpp')
+
 update_pop <- function(prev_vals, psi) {
   # compute previous time step per-capita consumption
   y <- prev_vals$Q / prev_vals$P
@@ -31,7 +33,37 @@ update_emis <- function(Q, gamma, rho) {
   Q*phi
 }
 
-mod <- function(pars, parnames, start=1700, end=2017) {
+run_model <- function(pars, parnames, start=1700, end=2017) {
+  # create time vector
+  yr <- seq(start, end)
+  n_yr <- length(yr)
+  
+  # extract parameter values
+  P0 <- pars[match('P0', parnames)]
+  psi <- pars[match(c('psi1', 'psi2', 'psi3'), parnames)]
+  alpha <- pars[match('alpha', parnames)]
+  A0 <- pars[match('A0', parnames)]
+  As <- pars[match('As', parnames)]
+  s <- pars[match('s', parnames)]
+  lambda <- pars[match('lambda', parnames)]
+  delta <- pars[match('delta', parnames)]
+  pi <- pars[match('pi', parnames)]
+  kappa <- pars[match('kappa', parnames)]
+  tau <- pars[match(c('tau2', 'tau3', 'tau4'), parnames)]
+  rho <- pars[match(c('rho2', 'rho3'), parnames)]
+  
+  
+  # compute technology penetration values for technologies with non-zero emissions
+  gamma <- cbind(
+    1 / (1 + exp(-kappa * (yr - tau[1]))) - 1 / (1 + exp(-kappa * (yr - tau[2]))),
+    1 / (1 + exp(-kappa * (yr - tau[2]))) - 1 / (1 + exp(-kappa * (yr - tau[3])))
+  )
+  
+  model_run(yr, P0, psi, alpha, A0, As, s, lambda, delta, pi, kappa, gamma, rho)
+  
+}
+
+run_model_r <- function(pars, parnames, start=1700, end=2017) {
   # create time vector
   yr <- seq(start, end)
   # create data frame for storage of model values

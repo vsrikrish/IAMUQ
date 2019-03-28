@@ -4,11 +4,13 @@
 #     prior, and posterior functions                     #
 ##########################################################
 
-R_path <- 'R'
-source(file.path(R_path, 'model.R')) # model function file
-source(file.path(R_path, 'util.R')) # utilities
-
 library(mvtnorm)
+library(Rcpp)
+
+source('R/model.R') # model function file
+source('R/util.R') # utilities
+sourceCpp('src/misc.cpp')
+
 
 #### evaluate log-expert assessment likelihood for probabilistic inversion ####
 
@@ -78,14 +80,15 @@ check_param_constraints <- function(pars, parnames) {
     obs_flag <- all(apply(eps, 2, function(x) x[1] > x[2]))
   }
   # check if the eigenvalues of the VAR coefficient matrix are within the unit circle (for stability of the VAR process)
-  eig_flag <- TRUE
-  if ('a_21' %in% parnames) {
-    a <- pars[match(c('a_pop', 'a_prod', 'a_emis', 'a_21', 'a_31', 'a_12', 'a_23', 'a_13', 'a_32'), parnames)]
-    ev <- eigen(matrix(a, ncol=sqrt(length(y), nrow=sqrt(length(y)))))$values
-    eig_flag <- all(vapply(ev, abs, numeric(1)) < 1)
-  }
+  # det_flag <- TRUE
+  # if ('a_21' %in% parnames) {
+  #   a <- pars[match(c('a_pop', 'a_21', 'a_31', 'a_12', 'a_prod', 'a_23', 'a_13', 'a_32', 'a_emis'), parnames)]
+  #   d <- det(matrix(a, ncol=sqrt(length(a)), nrow=sqrt(length(a))))
+  #   det_flag <- (abs(d) <= 1)
+  # }
   
-  (delta < s) && (rho[1] >= rho[2]) && (all(tau == cummax(tau))) && obs_flag && eig_flag
+  (delta < s) && (rho[1] >= rho[2]) && (all(tau == cummax(tau))) && obs_flag
+#  && det_flag
   
 }
 
@@ -198,18 +201,9 @@ log_lik_var <- function(pars, parnames, model_out, dat) {
   A_pow <- Reduce('%*%', A_rep, accumulate=TRUE) # compute powers of A
   A_Sigma_pow <- lapply(A_pow, function(M) M %*% Sigma_x) # multiple through by Sigma_x
   
-  H <- abs(outer(1:n, 1:n, '-')) # matrix of powers as they should be combined
-  Sigma <- matrix(0, nrow=nrow(A)*n, ncol=ncol(A)*n) # initialize storage for joint autocovariance matrix
-  # bind blocks together
-  for (i in 1:n) {
-    for (j in 1:n) {
-      if (i >= j) {
-        Sigma[(nrow(A)*(i-1)+1):(nrow(A)*i), (ncol(A)*(j-1)+1):(ncol(A)*j)] <- A_Sigma_pow[[(H[i, j] + 1)]]
-      } else {
-        Sigma[(nrow(A)*(i-1)+1):(nrow(A)*i), (ncol(A)*(j-1)+1):(ncol(A)*j)] <- t(A_Sigma_pow[[(H[i, j] + 1)]])
-      }
-    }
-  }
+  H <- abs(outer(1:n, 1:n, '-')) # matrix of indices for blocks as they should be combined
+  Sigma <- sym_bind_mat(A_Sigma_pow, H)
+
   # add observation errors along diagonal
   Sigma <- Sigma + diag(rep(eps, n))
   
@@ -225,7 +219,7 @@ neg_log_lik <- function(pars, parnames, dat, lik_fun) {
   }
   
   # run model
-  model_out <- mod(pars, parnames, start=1700, end=dat[[1]]$year[nrow(dat[[1]])])
+  model_out <- run_model(pars, parnames, start=1700, end=dat[[1]]$year[nrow(dat[[1]])])
   # evaluate log-likelihood
   ll <- match.fun(lik_fun)(pars, parnames, model_out, dat)
   # return negative log-likelihood
@@ -246,7 +240,7 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, expert=FALSE) {
     return(-Inf)
   }
   # run model to end date, which is 2500
-  model_out <- mod(pars, parnames, start=1700, end=2500)
+  model_out <- run_model(pars, parnames, start=1700, end=2500)
   ll <- match.fun(lik_fun)(pars, parnames, model_out, dat) # evaluate likelihood
   
   lpost <- lpri + ll # store sum of log-likelihood and log-prior
