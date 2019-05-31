@@ -1,6 +1,8 @@
-.R~
-.pbs
-.o-*
-.pdf
-.png
-#*.*#
+*.R~
+*.pbs
+*.o*
+*.pdf
+*.png
+\#*.*\#
+*.Rproj.user
+*.Rproj
