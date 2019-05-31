@@ -56,7 +56,8 @@ DataFrame model_run(NumericVector yr,
                     double pi,
                     double kappa,
                     NumericMatrix gamma,
-                    NumericVector rho) {
+                    NumericVector rho,
+                    Nullable<NumericVector> init) {
   int n_yr = yr.length();
   
   // initialize storage vectors for each output
@@ -69,11 +70,20 @@ DataFrame model_run(NumericVector yr,
   
   // set initial values
   P[0] = P0;
-  A[0] = A0;
   L[0] = pi * P[0];
-  K[0] = L[0] * pow(s * A[0] / delta,  1/lambda);
-  Q[0] = update_gwp(A[0], L[0], K[0], lambda);
-  C[0] = update_emis(Q[0], gamma(0, _ ), rho);
+
+  if (init.isNotNull()) {
+    NumericVector x(init);
+    Q[0] = x[0];
+    C[0] = x[1];
+    K[0] = (s / delta) * Q[0];
+    A[0] = Q[0] * pow(L[0], -lambda) * pow(K[0], lambda-1);
+  } else {
+    A[0] = A0;
+    K[0] = L[0] * pow(s * A[0] /  delta,  1/lambda);
+    Q[0] = update_gwp(A[0], L[0], K[0], lambda);
+    C[0] = update_emis(Q[0], gamma(0, _ ), rho);
+  }
   
   // loop over years and run model
   for (int i=1; i < n_yr; ++i) {

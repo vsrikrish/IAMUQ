@@ -28,6 +28,6 @@ em_dat <- read.table(file.path(data_path, 'global.1751_2014.ems'), skip = 35, co
 em_dat[, 2] <- em_dat[, 2]/1000
 colnames(em_dat) <- c('year', 'value')
 
-iamdata <- list(pop=po_dat, prod=pr_dat, emissions=em_dat)
+dat <- list(pop=po_dat, prod=pr_dat, emissions=em_dat)
 
-devtools::use_data(iamdata, overwrite=TRUE)
+devtools::use_data(dat, iamdata, overwrite=TRUE)

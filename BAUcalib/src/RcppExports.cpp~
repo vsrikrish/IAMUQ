@@ -45,9 +45,14 @@ BEGIN_RCPP
 END_RCPP
 }
 
+RcppExport SEXP _BAUcalib_cov_mat(SEXP, SEXP, SEXP, SEXP);
+RcppExport SEXP _BAUcalib_model_run(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+
 static const R_CallMethodDef CallEntries[] = {
     {"_IAMUQ_cov_mat", (DL_FUNC) &_IAMUQ_cov_mat, 4},
     {"_IAMUQ_model_run", (DL_FUNC) &_IAMUQ_model_run, 14},
+    {"_BAUcalib_cov_mat",   (DL_FUNC) &_BAUcalib_cov_mat,    4},
+    {"_BAUcalib_model_run", (DL_FUNC) &_BAUcalib_model_run, 14},
     {NULL, NULL, 0}
 };
 
