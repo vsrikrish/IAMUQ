@@ -1,7 +1,41 @@
+#' Run Markov Chain Monte Carlo (MCMC) to calibrate the IAM.
+#'
+#' \code{run_mcmc} uses adaptive MCMC (with the \code{adaptMCMC) package) to
+#'  calibrate the IAM.
+#'
+#' When run in parallel, \code{run_mcmc} uses all of the available cores (or
+#'  as many as are necessary to run the number of chains). The acceptance
+#'  rate is based on the number of parameters, between 44% for one parameter
+#'  and 23.4% for many parameters (from Roberts, Gelman, and Gilks (1997)).
+#'
+#' The covariance jump matrix is initialized using 10% of the prior
+#'  distribution standard deviations. Adaptation begins after the maximum of
+#'  500 parameters and 1% of the number of iterations, and continues until
+#'  5e5 parameters (intended as burn-in).
+#'
+#' @param post Function call (not string) for the log-posterior density
+#'  function.
+#' @param parnames Character vector of parameter names (see the documentation
+#'  for the desired likelihood function for which parameters are required).
+#' @param residtype String for the type of residual structure (by default
+#'  "iid" or "var"). The log-likelihood function associated with the
+#'  structure should have the name log_lik_residtype.
+#' @param prior_df Data frame of prior information (such as that produced by
+#'  \code{\link{create_prior_list)}}.
+#' @param data_yrs Numeric vector of the years for which the data will be
+#'  assimilated.
+#' @param init Numeric vector of initial values for the MCMC chain.
+#' @param n_iter Number of iterations for \code{\link{adaptMCMC}}.
+#' @param n_chain Number of MCMC chains to be run (more chains facilitates
+#'  covergence diagnostics).
+#' @param parallel Boolean: Should multiple MCMC chains be run in parallel?
+#' @param ... Additional parameters to be passed to the log-posterior
+#'  function.
+#' @return List of \code{\link{adaptMCMC}} output.
 run_mcmc <- function(post, parnames, residtype, prior_df, data_yrs, init, n_iter=1e6, n_chain=4, parallel=TRUE, ...) {
 
   ## prune data to specified years
-  dat <- lapply(baudata, function(l) {l[l$year %in% data_yrs,]})
+  dat <- lapply(iamdata, function(l) {l[l$year %in% data_yrs,]})
   ## obtain parameter names based on type of residual strucure
 
   ## set up prior distributions

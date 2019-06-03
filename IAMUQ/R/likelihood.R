@@ -10,7 +10,7 @@
 #'  distribution.
 #'
 #' @param model_out Data frame of model output (from \code{\link{run_model}
-#'  ).
+#' }).
 #' @return Log-density value of the model average GWP per-capita growth rate.
 log_exp_gwp <- function(model_out) {
   # set parameter values for expert assessment distribution
@@ -58,15 +58,20 @@ log_exp_gwp <- function(model_out) {
 #'  \item tau3, the half-saturation year of technology 3;
 #'  \item tau4, the half-saturation year of technology 4;
 #'  \item kappa, the rate of technological penetration;
-#'  \item aij, for $i,j=1, 2, 3$, the elements of the VAR cefficient matrix;
-#'  \item sigma_pop, the variance of the VAR innovations for population;
-#'  \item sigma_prod, the variance of the VAR innovations for economic output
-#'  ;
-#'  \item sigma_emis, the variance of the VAR innovations for emissions;
-#'  \item eps_pop, the variance of the observation errors for population;
+#'  \item aij, for $i,j=1, 2, 3$, the elements of the VAR cefficient matrix
+#'  (only when using a VAR model for the likelihood structure);
+#'  \item sigma_pop, the variance of the VAR or normal innovations for
+#'  population;
+#'  \item sigma_prod, the variance of the VAR or normal innovations for
+#'  economic output;
+#'  \item sigma_emis, the variance of the VAR or normal innovations for
+#'  emissions;
+#'  \item eps_pop, the variance of the observation errors for population
+#'  (only when using a VAR model for the likelihood structure);
 #'  \item eps_prod, the variance of the observation errors for economic
-#'  output;
+#'  output (only when using a VAR model for the likelihood structure);
 #'  \item eps_emis, the variance of the observation errors for emissions.
+#'  (only when using a VAR model for the likelihood structure);
 #'  }
 #' @param parnames Character vector of parameter names. These names should
 #'  align with the values in \code{pars}, but they don't need to be in any
@@ -169,6 +174,7 @@ check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh=6000
 #' @param dat List of data frames of data. List should have names 'pop'
 #'  (population), 'prod' (production), and 'emissions,' and each data frame
 #'  should have two columns, 'year' and 'value'.
+#' @return List of model residuals, with the same names as the \code{dat}.
 residuals <- function(model_out, dat) {
   # compute residuals for each output
   r <- list()
@@ -183,7 +189,56 @@ residuals <- function(model_out, dat) {
   r
 }
 
-## evaluates the log-likelihood under the assumption of iid residuals
+#' Compute the log-likelihood under the assumption of independently and
+#'  identically Gaussian distributed residuals.
+#'
+#' \code{log_lik_iid} assumes that the model residuals are independently and
+#'  identically distributed according to a normal distribution. Additionally,
+#'  the model residuals are also independent of each other. It also checks
+#'  if the model output satisfies a fossil fuel constraint, and returns
+#'  -infinity if it does not.
+#'
+#' @param pars Numeric vector of parameter values. These parameters must
+#'  include all of the model parameters listed in Table S1 and the
+#'  statistical parameters listed in Table S2 of Srikrishnan &
+#'  Keller (2019), with Greek letters spelled out: \itemize{
+#'  \item psi1, the population growth rate;
+#'  \item psi2, the population half-saturation constant;
+#'  \item psi3, the population carrying capacity;
+#'  \item P0, the initial population in year \code{start};
+#'  \item lambda, the elasticity of production with respect to labor (must
+#'  be less than 1);
+#'  \item s, the savings rate;
+#'  \item delta, the capital depreciation rate (must be less than s);
+#'  \item alpha, the rate of technological progress for total factor
+#'  productivity;
+#'  \item As, the saturation level of total factor productivity;
+#'  \item pi, the labor participation rate (must be less than 1);
+#'  \item A0, the initial total factor productivity in year \code{start};
+#'  \item rho2, the carbon emissions intensity of technology 2;
+#'  \item rho3, the carbon emissions intensity of technology 3;
+#'  \item tau2, the half-saturation year of technology 2;
+#'  \item tau3, the half-saturation year of technology 3;
+#'  \item tau4, the half-saturation year of technology 4;
+#'  \item kappa, the rate of technological penetration;
+#'  \item sigma_pop, the variance of the innovations for population;
+#'  \item sigma_prod, the variance of the innovations for economic output
+#'  ;
+#'  \item sigma_emis, the variance of the innovations for emissions;
+#' @param parnames Character vector of parameter names. These names should
+#'  align with the values in \code{pars}, but they don't need to be in any
+#'  particular order otherwise.
+#' @param model_out Data frame produced by model run, with columns 'year',
+#'  P' (population), 'Q' (production), and 'C' (emissions).
+#' @param dat List of data frames of data. List should have names 'pop'
+#'  (population), 'prod' (production), and 'emissions,' and each data frame
+#'  should have two columns, 'year' and 'value'.
+#' @param thresh Numeric value setting the fossil fuel resource constraint.
+#' @param ff_const_yrs Numeric vector setting the years over which the fossil
+#'  fuel constraint should be evaluated. This can be a full sequence or a
+#'  vector with the start and end years.
+#' @return Numeric value for the log-likelihood of the parameters given the
+#'  data and the fossil fuel constraint value.
 log_lik_iid <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yrs=1700:2500) {
   # check for fossil fuel constraint
   if (!check_fossil_constraint(model_out, start=ff_const_yrs[1], end=ff_const_yrs[length(ff_const_yrs)], thresh=thresh)) {
@@ -203,7 +258,61 @@ log_lik_iid <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
   sum(vapply(names(sigma), log_lik, numeric(1)))
 }
 
-## evaluates the log-likelihood with VAR(1) model errors and iid observation errors
+#' Compute the log-likelihood under the assumption of residuals jointly
+#'  distributed according to a VAR(1) model.
+#'
+#' \code{log_lik_var} assumes that the model residuals are jointly
+#'  distributed according to a vector autoregressive model of order 1 (VAR(1
+#'  )). It also checks if the model output satisfies a fossil fuel constraint
+#'  , and returns -infinity if it does not.
+#'
+#' @param pars Numeric vector of parameter values. These parameters must
+#'  include all of the model parameters listed in Table S1 and the
+#'  statistical parameters listed in Table S2 of Srikrishnan &
+#'  Keller (2019), with Greek letters spelled out: \itemize{
+#'  \item psi1, the population growth rate;
+#'  \item psi2, the population half-saturation constant;
+#'  \item psi3, the population carrying capacity;
+#'  \item P0, the initial population in year \code{start};
+#'  \item lambda, the elasticity of production with respect to labor (must
+#'  be less than 1);
+#'  \item s, the savings rate;
+#'  \item delta, the capital depreciation rate (must be less than s);
+#'  \item alpha, the rate of technological progress for total factor
+#'  productivity;
+#'  \item As, the saturation level of total factor productivity;
+#'  \item pi, the labor participation rate (must be less than 1);
+#'  \item A0, the initial total factor productivity in year \code{start};
+#'  \item rho2, the carbon emissions intensity of technology 2;
+#'  \item rho3, the carbon emissions intensity of technology 3;
+#'  \item tau2, the half-saturation year of technology 2;
+#'  \item tau3, the half-saturation year of technology 3;
+#'  \item tau4, the half-saturation year of technology 4;
+#'  \item kappa, the rate of technological penetration;
+#'  \item aij, for $i,j=1, 2, 3$, the elements of the VAR cefficient matrix;
+#'  \item sigma_pop, the variance of the VAR innovations for population;
+#'  \item sigma_prod, the variance of the VAR innovations for economic output
+#'  ;
+#'  \item sigma_emis, the variance of the VAR innovations for emissions;
+#'  \item eps_pop, the variance of the observation errors for population;
+#'  \item eps_prod, the variance of the observation errors for economic
+#'  output;
+#'  \item eps_emis, the variance of the observation errors for emissions.
+#'  }
+#' @param parnames Character vector of parameter names. These names should
+#'  align with the values in \code{pars}, but they don't need to be in any
+#'  particular order otherwise.
+#' @param model_out Data frame produced by model run, with columns 'year',
+#'  P' (population), 'Q' (production), and 'C' (emissions).
+#' @param dat List of data frames of data. List should have names 'pop'
+#'  (population), 'prod' (production), and 'emissions,' and each data frame
+#'  should have two columns, 'year' and 'value'.
+#' @param thresh Numeric value setting the fossil fuel resource constraint.
+#' @param ff_const_yrs Numeric vector setting the years over which the fossil
+#'  fuel constraint should be evaluated. This can be a full sequence or a
+#'  vector with the start and end years.
+#' @return Numeric value for the log-likelihood of the parameters given the
+#'  data and the fossil fuel constraint value.
 log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yrs=1700:2500) {
   # check fossil fuel constraint
   if (!check_fossil_constraint(model_out, start=ff_const_yrs[1], end=ff_const_yrs[length(ff_const_yrs)], thresh=thresh)) {
@@ -244,8 +353,80 @@ log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
   mvtnorm::dmvnorm(r_vec, sigma=Sigma, log=TRUE)
 }
 
-## compute the log-posterior density
-log_post <- function(pars, parnames, priors, dat, lik_fun, exp_co2=FALSE, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500) {
+#' Log-posterior density for the provided parameter values given the data
+#'
+#' \code{log_post} returns the log-posterior density for the provided
+#'  parameter values, based on the provided list of prior distributions, the
+#'  data, the fossil fuel constraint, and the desired likelihood structure.
+#'
+#' The provided prior distributions should be in the list form
+#'  generated by \code{\link{create_prior_list}}.
+#'
+#' @param pars Numeric vector of parameter values. These parameters must
+#'  include all of the model parameters listed in Table S1 and the
+#'  statistical parameters listed in Table S2 of Srikrishnan &
+#'  Keller (2019), with Greek letters spelled out: \itemize{
+#'  \item psi1, the population growth rate;
+#'  \item psi2, the population half-saturation constant;
+#'  \item psi3, the population carrying capacity;
+#'  \item P0, the initial population in year \code{start};
+#'  \item lambda, the elasticity of production with respect to labor (must
+#'  be less than 1);
+#'  \item s, the savings rate;
+#'  \item delta, the capital depreciation rate (must be less than s);
+#'  \item alpha, the rate of technological progress for total factor
+#'  productivity;
+#'  \item As, the saturation level of total factor productivity;
+#'  \item pi, the labor participation rate (must be less than 1);
+#'  \item A0, the initial total factor productivity in year \code{start};
+#'  \item rho2, the carbon emissions intensity of technology 2;
+#'  \item rho3, the carbon emissions intensity of technology 3;
+#'  \item tau2, the half-saturation year of technology 2;
+#'  \item tau3, the half-saturation year of technology 3;
+#'  \item tau4, the half-saturation year of technology 4;
+#'  \item kappa, the rate of technological penetration;
+#'  \item aij, for $i,j=1, 2, 3$, the elements of the VAR cefficient matrix
+#'  (only when using a VAR model for the likelihood structure);
+#'  \item sigma_pop, the variance of the VAR or normal innovations for
+#'  population;
+#'  \item sigma_prod, the variance of the VAR or normal innovations for
+#'  economic output;
+#'  \item sigma_emis, the variance of the VAR or normal innovations for
+#'  emissions;
+#'  \item eps_pop, the variance of the observation errors for population
+#'  (only when using a VAR model for the likelihood structure);
+#'  \item eps_prod, the variance of the observation errors for economic
+#'  output (only when using a VAR model for the likelihood structure);
+#'  \item eps_emis, the variance of the observation errors for emissions.
+#'  (only when using a VAR model for the likelihood structure);
+#'  }
+#' @param parnames Character vector of parameter names. These names should
+#'  align with the values in \code{pars}, but they don't need to be in any
+#'  particular order otherwise.
+#' @param priors Named list of priors, with names containing all of the
+#'  elements in \code{parnames}. \code{priors} is best created using
+#'  '\code{\link{create_prior_list}}, but each element must be a list
+#'  containing: \itemize{
+#'  \item dens.fun, (string) function name for evaluating the density
+#'  \item ..., other named parameters required for evaluation of
+#'  \code{dens.fun}
+#'  }
+#' @param dat List of data frames of data. List should have names 'pop'
+#'  (population), 'prod' (production), and 'emissions,' and each data frame
+#'  should have two columns, 'year' and 'value'.
+#' @param lik_fun Character string with the name of the desired likelihood
+#'  function (provided functions are \code{log_lik_iid} and
+#'  '\code{log_lik_var}).
+#' @param exp_gwp Boolean: should the provided expert assessment of average
+#'  GWP growth from 2010-2100 (\code{log_exp_gwp)) be inverted for additional
+#'  prior structure?
+#' @param thresh Numeric value setting the fossil fuel resource constraint.
+#' @param ff_const_yrs Numeric vector setting the years over which the fossil
+#'  fuel constraint should be evaluated. This can be a full sequence or a
+#'  vector with the start and end years.
+#' @return Numeric value for the log-posterior of the parameters given the
+#'  priors, the data and the fossil fuel constraint value.
+log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500) {
   # check for parameter constraints and return -Inf if not satisfied
   if (!check_param_constraints(pars, parnames))  {
     return(-Inf)
@@ -268,15 +449,87 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_co2=FALSE, exp_gw
   if (exp_gwp) {
     lpost <- lpost + log_exp_gwp(model_out)
   }
-  if (exp_co2) {
-    lpost <- lpost + log_exp_co2(model_out)
-  }
 
   lpost # return log-posterior vlaue
 }
 
-## compute the negative log-posterior (for use with DEoptim)
-neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_co2=FALSE, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500) {
+#' Negative ;og-posterior density for the provided parameter values given the
+#'  data
+#'
+#' \code{neg_log_post} returns the negative of the log-posterior density
+#'  value for the provided parameter values, based on the provided list of
+#'  prior distributions, the data, the fossil fuel constraint, and the
+#'  desired likelihood structure. It is intended for use with an objective
+#'  -minimizing optimization function such as \code{DEoptim}.
+#'
+#' The provided prior distributions should be in the list form
+#'  generated by \code{\link{create_prior_list}}.
+#'
+#' @param pars Numeric vector of parameter values. These parameters must
+#'  include all of the model parameters listed in Table S1 and the
+#'  statistical parameters listed in Table S2 of Srikrishnan &
+#'  Keller (2019), with Greek letters spelled out: \itemize{
+#'  \item psi1, the population growth rate;
+#'  \item psi2, the population half-saturation constant;
+#'  \item psi3, the population carrying capacity;
+#'  \item P0, the initial population in year \code{start};
+#'  \item lambda, the elasticity of production with respect to labor (must
+#'  be less than 1);
+#'  \item s, the savings rate;
+#'  \item delta, the capital depreciation rate (must be less than s);
+#'  \item alpha, the rate of technological progress for total factor
+#'  productivity;
+#'  \item As, the saturation level of total factor productivity;
+#'  \item pi, the labor participation rate (must be less than 1);
+#'  \item A0, the initial total factor productivity in year \code{start};
+#'  \item rho2, the carbon emissions intensity of technology 2;
+#'  \item rho3, the carbon emissions intensity of technology 3;
+#'  \item tau2, the half-saturation year of technology 2;
+#'  \item tau3, the half-saturation year of technology 3;
+#'  \item tau4, the half-saturation year of technology 4;
+#'  \item kappa, the rate of technological penetration;
+#'  \item aij, for $i,j=1, 2, 3$, the elements of the VAR cefficient matrix
+#'  (only when using a VAR model for the likelihood structure);
+#'  \item sigma_pop, the variance of the VAR or normal innovations for
+#'  population;
+#'  \item sigma_prod, the variance of the VAR or normal innovations for
+#'  economic output;
+#'  \item sigma_emis, the variance of the VAR or normal innovations for
+#'  emissions;
+#'  \item eps_pop, the variance of the observation errors for population
+#'  (only when using a VAR model for the likelihood structure);
+#'  \item eps_prod, the variance of the observation errors for economic
+#'  output (only when using a VAR model for the likelihood structure);
+#'  \item eps_emis, the variance of the observation errors for emissions.
+#'  (only when using a VAR model for the likelihood structure);
+#'  }
+#' @param parnames Character vector of parameter names. These names should
+#'  align with the values in \code{pars}, but they don't need to be in any
+#'  particular order otherwise.
+#' @param priors Named list of priors, with names containing all of the
+#'  elements in \code{parnames}. \code{priors} is best created using
+#'  '\code{\link{create_prior_list}}, but each element must be a list
+#'  containing: \itemize{
+#'  \item dens.fun, (string) function name for evaluating the density
+#'  \item ..., other named parameters required for evaluation of
+#'  \code{dens.fun}
+#'  }
+#' @param dat List of data frames of data. List should have names 'pop'
+#'  (population), 'prod' (production), and 'emissions,' and each data frame
+#'  should have two columns, 'year' and 'value'.
+#' @param lik_fun Character string with the name of the desired likelihood
+#'  function (provided functions are \code{log_lik_iid} and
+#'  '\code{log_lik_var}).
+#' @param exp_gwp Boolean: should the provided expert assessment of average
+#'  GWP growth from 2010-2100 (\code{log_exp_gwp)) be inverted for additional
+#'  prior structure?
+#' @param thresh Numeric value setting the fossil fuel resource constraint.
+#' @param ff_const_yrs Numeric vector setting the years over which the fossil
+#'  fuel constraint should be evaluated. This can be a full sequence or a
+#'  vector with the start and end years.
+#' @return Numeric value for the log-posterior of the parameters given the
+#'  priors, the data and the fossil fuel constraint value.
+neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500) {
 
   # evaluate log-likelihood
   lp <- log_post(pars,parnames, priors, dat, lik_fun, exp_co2, exp_gwp, thresh=thresh, ff_const_yrs=ff_const_yrs)
