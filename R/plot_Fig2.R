@@ -85,11 +85,11 @@ fig <- arrangeGrob(p, legend, ncol=1,
           heights=unit.c(unit(1, 'npc') - lheight, lheight)
          )
 
-pdf('figures/ssp.pdf', height=3.5, width=3.5)
+pdf('figures/Fig2-emissions.pdf', height=3.5, width=3.5)
 grid.draw(fig)
 dev.off()
 
-png('figures/ssp.png', height=3.5, width=3.5, units='in', res=600)
+png('figures/Fig2-emissions.png', height=3.5, width=3.5, units='in', res=600)
 grid.draw(fig)
 dev.off()
 

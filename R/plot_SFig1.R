@@ -34,11 +34,11 @@ p[[4]] <- ggplot(res[['pop']]) + geom_point(aes(x=year, y=residuals)) + ggtitle(
 p[[5]] <- ggplot(res[['prod']]) + geom_point(aes(x=year, y=residuals)) + ggtitle('Residuals') + scale_x_continuous('Year') + scale_y_continuous('log Trillions 2011US$')
 p[[6]] <- ggplot(res[['emissions']]) + geom_point(aes(x=year, y=residuals)) + ggtitle('Residuals')  + scale_x_continuous('Year') + scale_y_continuous('log GtC/yr')
 
-pdf('figures/iid-resid.pdf', height=6.5, width=6.5)
+pdf('figures/FigS1-iid.pdf', height=6.5, width=6.5)
 do.call("grid.arrange", c(p, ncol=3))
 dev.off()
 
-png('figures/iid-resid.png', height=6.5, width=6.5, units='in',res=600)
+png('figures/FigS1-iid.png', height=6.5, width=6.5, units='in',res=600)
 do.call("grid.arrange", c(p, ncol=3))
 dev.off()
 

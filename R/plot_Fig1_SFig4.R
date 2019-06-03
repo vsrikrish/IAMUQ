@@ -60,11 +60,11 @@ grid_arrange_shared_legend <- function(..., ncol = length(list(...)), nrow = 1, 
 
 g <- grid_arrange_shared_legend(p_ci[[1]], p_ci[[2]], p_ci[[3]], ncol=3, nrow=1, position='bottom')
 
-pdf('figures/hindcast-both.pdf', width=8, height=3)
+pdf('figures/FigS4-hindcast.pdf', width=8, height=3)
 grid.draw(g)
 dev.off()
 
-png('figures/hindcast-both.png', width=8, height=3, units='in', res=600)
+png('figures/FigS4-hindcast.png', width=8, height=3, units='in', res=600)
 grid.draw(g)
 dev.off()
 
@@ -84,11 +84,11 @@ for (i in 1:length(dat)) {
 
 g <- grid_arrange_shared_legend(p_ci[[1]], p_ci[[2]], p_ci[[3]], ncol=3, nrow=1, position='bottom')
 
-pdf('figures/hindcast.pdf', width=7, height=3.5)
+pdf('figures/Fig1-hindcast.pdf', width=7, height=3.5)
 grid.draw(g)
 dev.off()
 
-png('figures/hindcast.png', width=7, height=3.5, units='in', res=600)
+png('figures/Fig1-hindcast.png', width=7, height=3.5, units='in', res=600)
 grid.draw(g)
 dev.off()
 
