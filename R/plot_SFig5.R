@@ -7,8 +7,13 @@ case_labels <- c('Base', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Ca
 n_samp <- 1e5
 
 sample_param <- function(case, parname, n) {
-  post <- readRDS(paste0('output/reject_samps_', case, '.rds'))
-  idx <- sample(1:nrow(post), n_samp, replace=TRUE)
+  mcmc_out <- readRDS(paste0('output/mcmc_', case, '.rds'))
+  mcmc_length <- nrow(mcmc_out[[1]]$samples)
+  burnin <- 5e5
+  post <- do.call(rbind, lapply(mcmc_out[1:4], function(l) l$samples[(burnin+1):mcmc_length,]))
+  parnames <- colnames(post)
+  # obtain ensemble of posterior samples
+  idx <- sample(1:nrow(post), nsamp, replace=TRUE)
   post[idx, parname]
 }
 
