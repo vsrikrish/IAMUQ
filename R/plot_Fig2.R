@@ -30,10 +30,6 @@
 
 rm(list = ls())
 
-## read in function for analysis from command arguments
-args <- commandArgs(trailingOnly=TRUE)
-sobol_func <- args[1]
-
 n_params <- 18 # set number of parameters
 # set files with sobol indices
 sobol_file_1 <- paste0('output/Sobol-1-tot_temp.txt')
