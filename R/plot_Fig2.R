@@ -1,118 +1,199 @@
-library(BAUcalib)
-library(readr)
-library(reshape2)
-library(ggplot2)
-library(grid)
-library(gtable)
-library(gridExtra)
-library(dplyr)
+##==========================================================================
+## sobol_plot.R
+##
+## Sobol sensitvity analysis for business-as-usual emissions
+## --> plotting routines
+##
+## Code history:
+## this one by Vivek Srikrishnan, 30 April 2019, Penn State. Modified a bit
+## relative to the previous versions listed below.
+###################################
+## Adapted from 'BRICK_Sobol_plotting.R'
+## Original authored by Tony Wong
+## Pennsylvania State University
+## twong@psu.edu
+#######################################
+## Adapted from 'radialPlot_vanDantzig.R'
+## Originally authored by: Perry Oddo
+## Pennsylvania State University
+## poddo@psu.edu
+###################################
+## Adapted from 'radialConvergeTest.R'
+## Originally authored by: Calvin Whealton
+## Cornell University
+## caw324@cornell.edu
+####################################
+## Code for radial Sobol Analysis plot
+## Original code available at:
+## https://github.com/calvinwhealton/SensitivityAnalysisPlots
+####################################
 
-ssp_dat <- read_csv('data/ssp_db.csv', col_types='cccccnnnnnnnnnnnl')
-ssp_dat <- as.data.frame(ssp_dat)
-ssp_dat[, 'Scenario'] <- gsub('-Baseline', '', ssp_dat[, 'Scenario'])
-ssp_dat <- ssp_dat[ssp_dat[, ncol(ssp_dat)], c(2, 6:(ncol(ssp_dat)-1))]
-ssp_dat[, '2000'] <- NA
-ssp_dat <- ssp_dat[, c(1, ncol(ssp_dat), 2:(ncol(ssp_dat)-1))]
+rm(list = ls())
 
-rcp_dat <- read_csv('data/rcp_db.csv', col_types='ccccnnnnnnnnnnnnc')
-rcp_dat <- as.data.frame(rcp_dat)
-rcp_dat <- rcp_dat[, c(2, 6:(ncol(rcp_dat))-1)]
+## read in function for analysis from command arguments
+args <- commandArgs(trailingOnly=TRUE)
+sobol_func <- args[1]
 
-scen_dat <- rbind(ssp_dat, rcp_dat)
-scen_dat[, 'Run'] <- 1:nrow(scen_dat)
+n_params <- 18 # set number of parameters
+# set files with sobol indices
+sobol_file_1 <- paste0('output/Sobol-1-tot_temp.txt')
+sobol_file_2 <- paste0('output/Sobol-2-tot_temp.txt')
 
-scen_melt <- melt(scen_dat, id.vars=c('Scenario', 'Run'))
-colnames(scen_melt)[3] <- 'Year'
-scen_melt[, 'Year'] <- as.numeric(levels(scen_melt[, 'Year']))[scen_melt[, 'Year']]
-scen_melt[grepl('SSP', scen_melt[, 'Scenario']), 'value'] <- scen_melt[grepl('SSP', scen_melt[, 'Scenario']), 'value'] / (3.67 * 1000)
+## plot spider plot
+library(RColorBrewer)
+library(graphics)
+library(plotrix)
 
+source('R/sobol_plot_functions.R')
+source('R/colorBlindPalette.R')
 
-yrs <- 1700:2100
-obs <- baudata[['emissions']][baudata[['emissions']]$year %in% 2000:2014, ]
+## Import data from sensitivity analysis
+# First- and total-order indices
+s1st <- read.csv(sobol_file_1,
+                  sep=' ',
+                  header=TRUE,
+                  nrows = n_params,
+                  as.is=c(TRUE,rep(FALSE,5)))
+  
+parnames <- s1st[,1]
 
-tol9qualitative=c("#88CCEE", "#332288", "#117733", "#44AA99", "#AA4499",  "#CC6677", "#882255", "#6699CC", "#999933")
+# Import second-order indices
+s2_table <- read.csv(sobol_file_2,
+               sep=' ',
+               header=TRUE,
+               nrows = n_params*(n_params-1)/2,
+               as.is=c(TRUE,rep(FALSE,4)))
 
-cbbpsqualitative <- c("#000000", "#e79f00", "#9ad0f3", "#CC79A7", "#0072B2", "#009E73", "#F0E442", "#D55E00")
+# Convert second-order to upper-triangular matrix
+s2 <- matrix(nrow=n_params, ncol=n_params, byrow=FALSE)
+s2[1:(n_params-1), 2:n_params] = upper.diag(s2_table$S2)
+s2 <- as.data.frame(s2)
+colnames(s2) <- rownames(s2) <- s1st$Parameter
 
-cases <- c('base', 'low', 'high', 'alt_zc')
-case_labels <- c('Base', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Carbon')
+# Convert confidence intervals to upper-triangular matrix
+s2_conf_low <- matrix(nrow=n_params, ncol=n_params, byrow=FALSE)
+s2_conf_high <- matrix(nrow=n_params, ncol=n_params, byrow=FALSE)
+s2_conf_low[1:(n_params-1), 2:n_params] = upper.diag(s2_table$S2_conf_low)
+s2_conf_high[1:(n_params-1), 2:n_params] = upper.diag(s2_table$S2_conf_high)
 
-get_emissions <- function(case) {
-  model_pred <- readRDS(paste0('output/reject_sim_', case, '.rds'))
+s2_conf_low <- as.data.frame(s2_conf_low)
+s2_conf_high <- as.data.frame(s2_conf_high)
+colnames(s2_conf_low) <- rownames(s2_conf_low) <- s1st$Parameter
+colnames(s2_conf_high) <- rownames(s2_conf_high) <- s1st$Parameter
 
-  do.call(cbind, lapply(model_pred, function(l) l$C))
-}
+# Determine which indices are statistically significant
 
-emis_q <- function(emis, yrs) {
-  co2_q <- data.frame(Year=yrs, t(apply(emis, 1, quantile, probs=c(0.05, 0.95))))
-  colnames(co2_q)[2:3] <- c('lower', 'upper')
+sig.cutoff <- 0.01
 
-  co2_q
-}
+# S1 & ST: using the confidence intervals
+s1st1 <- stat_sig_s1st(s1st
+                      ,method="congtr"
+                      ,greater=sig.cutoff
+                      ,sigCri='either')
 
-emis_dist <- function(emis, yr) {
-    data.frame(value=emis[which(yrs == yr), ])
-}
+# S1 & ST: using greater than a given value
+#s1st1 <- stat_sig_s1st(s1st
+#                      ,method="gtr"
+#                      ,greater=0.01
+#                      ,sigCri='either')
 
-emis <- lapply(cases, get_emissions)
-names(emis) <- cases
+# S2: using the confidence intervals
+s2_sig1 <- stat_sig_s2(s2
+                       ,s2_conf_low
+                       ,s2_conf_high
+                       ,method='congtr'
+                       ,greater=sig.cutoff
+                       )
 
-co2_q <- lapply(emis, emis_q, yrs=yrs)
-co2_q <- bind_rows(co2_q, .id='case')
-co2_q$case <- factor(co2_q$case, levels=cases, labels=case_labels)
+# S2: using greater than a given value
+#s2_sig1 <- stat_sig_s2(s2
+#                       ,s2_conf
+#                       ,greater=0.02
+#                       ,method='gtr')
 
-co2_2100 <- lapply(emis, emis_dist, yr=2100)
-co2_2100 <- bind_rows(co2_2100, .id='case')
-co2_2100$case <- factor(co2_2100$case, levels=cases, labels=case_labels)
+## Define groups for the variables and the color schemes
+# Defining lists of the variables for each group
+name_list <- list('Population \n Growth' = parnames[1:4],
+                  'Economic \n Output' = parnames[5:11],
+                  'Emissions & \n Technology' = parnames[12:17],
+                  'Earth \n Science' = parnames[18]
+                 )
+                 
+# add Parameter symbols to plot
+name_symbols <- c(expression(psi[1]), expression(psi[2]),
+                  expression(psi[3]), expression(P[0]),
+                  expression(lambda), 's', expression(delta),
+                  expression(alpha), expression(A[s]),
+                  expression(pi), expression(A[0]),
+                  expression(rho[2]), expression(rho[3]),
+                  expression(tau[2]), expression(tau[3]),
+                  expression(tau[4]), expression(kappa),
+                  'TCRE'
+                 )
+                 
+source('R/colorBlindPalette.R')
 
-th <- theme_bw(base_size=10) + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(), legend.title=element_text(size=9))
-theme_set(th)
+# defining list of colors for each group
+col_list <- list("Population \n Growth"     = rgb(mycol[11,1],mycol[11,2],mycol[11,3])
+                  ,'Economic \n Output' = rgb(mycol[7,1],mycol[7,2],mycol[7,3]),
+                   'Emissions & \n Technology'   = rgb(mycol[1,1],mycol[1,2],mycol[1,3]),
+                   'Earth \n Science' = rgb(mycol[13, 1], mycol[13,2], mycol[13,3])
+                  )
+                  
+# using function to assign variables and colors based on group
+s1st1 <- gp_name_col(name_list
+                     ,col_list
+                     ,s1st1)
 
-p_series <- ggplot() + geom_ribbon(data=co2_q, aes(x=Year, ymin=lower, ymax=upper, fill=case), color=NA, alpha=0.3) + geom_line(data=scen_melt, aes(x=Year, y=value, group=factor(Run), color=Scenario)) +  geom_point(data=obs, aes(x=year, y=emissions), color='black', size=1) + scale_y_continuous(expression(CO[2]~Emissions~(Gt~C/yr)), limits=c(0, 40), expand=c(0.001, 0.001)) + scale_color_manual('Emissions Scenario', values=tol9qualitative) + scale_linetype_discrete('Marker') + scale_fill_manual('Model Scenario', values=cbbpsqualitative) + scale_x_continuous('Year', limits=c(2000, 2100), breaks=seq(2000, 2100, by=20), expand=c(0.001, 0.001)) + theme(plot.margin=unit(c(0.6, 0, 0.5, 0.08), 'in'), legend.position='bottom', legend.box='vertical', legend.box.just = 'left', legend.spacing = unit(-0.2, 'cm')) + guides(color = guide_legend(order=1, nrow=3, byrow=FALSE, override_aes=list(size=5)), linetype = guide_legend(order=2), fill = guide_legend(order=3, nrow=2, byrow=FALSE))
+s1st1$symbols <- name_symbols
 
-p_marg <- ggplot() + stat_density(data=co2_2100, aes(x=value, fill=case, color=case), alpha=0.3, geom='area', position='identity') + scale_x_continuous(limits=c(0, 40), expand=c(0.001, 0.001)) + scale_y_continuous(expand=c(0.001, 0.001)) + coord_flip() + scale_fill_manual('', values=cbbpsqualitative) + scale_color_manual('', values=cbbpsqualitative) + theme(axis.text.y=element_blank(), axis.title.y=element_blank(), axis.ticks.y=element_blank(), panel.border=element_blank(), plot.margin=unit(c(0.605, 0.2, 0.815, -0.02), 'in'), axis.title.x=element_blank(), axis.ticks.x=element_blank(), axis.text.x=element_blank(), axis.line.y=element_line(color='black'), legend.position='none')
+# set filename for plot
+plot_file <- paste0('figures/sobol_temp')
 
-p <- gtable_row('scenarios', grobs=list(ggplotGrob(p_series + theme(legend.position='none')), ggplotGrob(p_marg)), height=unit(3, 'in'), widths=unit(c(2.7, 0.8), 'in'), z=c(2,1))
+plotRadCon(df=s1st1
+           ,s2=s2
+           ,scaling = .4
+           ,s2_sig=s2_sig1
+           ,filename = plot_file
+           ,plotType = 'EPS'
+           ,gpNameMult=1.6
+           ,RingThick=0.1
+           ,legLoc = "bottomcenter",cex = .76
+           ,s1_col = rgb(mycol[3,1],mycol[3,2],mycol[3,3])
+           ,st_col = rgb(mycol[6,1],mycol[6,2],mycol[6,3])
+           ,line_col = rgb(mycol[10,1],mycol[10,2],mycol[10,3])
+           ,STthick = 0.5
+           ,legFirLabs=c(.05,.77), legTotLabs=c(.05,.83), legSecLabs=c(.02,.05)
+           ,lsetback=FALSE
+)
 
+## Further analysis for the text:
+##
 
-# extract legend from time series plot
-g <- ggplotGrob(p_series)$grobs
-legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-lheight <- sum(legend$height)
-lwidth <- sum(legend$width)
+# what are the highest first-order indices?
+s1.sort <- s1st[rev(order(s1st[,'S1'])),1:4]
+itmp <- which(s1.sort[,'S1'] > sig.cutoff & s1.sort[,'S1_conf_low']*s1.sort[,'S1_conf_high'] > 0)
+s1.sort <- s1.sort[itmp,]
+print('********************************')
+print('significant first-order indices:')
+print(s1.sort)
+print('********************************')
 
-fig <- arrangeGrob(p, legend, ncol=1,
-          heights=unit.c(unit(1, 'npc') - lheight, lheight)
-         )
+# what are the highest total-order indices?
+st.sort <- s1st[rev(order(s1st[,'ST'])),c(1,5:7)]
+itmp <- which(st.sort[,'ST'] > sig.cutoff & st.sort[,'ST_conf_low']*st.sort[,'ST_conf_high'] > 0)
+st.sort <- st.sort[itmp,]
+print('********************************')
+print('significant total-order indices:')
+print(st.sort)
+print('********************************')
 
-pdf('figures/Fig2-emissions.pdf', height=3.5, width=3.5)
-grid.draw(fig)
-dev.off()
+# what are the highest second-order interaction indices?
+s2.sort <- s2_table[rev(order(s2_table[,3])),]
+itmp <- which(s2.sort[,'S2'] > sig.cutoff & s2.sort[,'S2_conf_low']*s2.sort[,'S2_conf_high'] > 0)
+s2.sort <- s2.sort[itmp,]
+print('********************************')
+print('significant second-order indices:')
+print(s2.sort)
+print('********************************')
 
-png('figures/Fig2-emissions.png', height=3.5, width=3.5, units='in', res=600)
-grid.draw(fig)
-dev.off()
-
-th <- theme_bw(base_size=18) + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
-theme_set(th)
-
-p_series <- ggplot() + geom_ribbon(data=co2_q, aes(x=Year, ymin=lower, ymax=upper, fill=case), color=NA, alpha=0.3) + geom_line(data=scen_melt, aes(x=Year, y=value, group=factor(Run), color=Scenario)) +  geom_point(data=obs, aes(x=year, y=emissions), color='black', size=1.5) + scale_y_continuous(expression(CO[2]~Emissions~(Gt~C/yr)), limits=c(0, 40), expand=c(0.001, 0.001)) + scale_color_manual('Emissions Scenario', values=tol9qualitative) + scale_linetype_discrete('Marker') + scale_fill_manual('Model Scenario', values=cbbpsqualitative) + scale_x_continuous(limits=c(2000, 2100), breaks=seq(2000, 2100, by=20), expand=c(0.001, 0.001)) + theme(plot.margin=unit(c(0.5, 0, 0.2, 0.1), 'in'), legend.position='bottom', legend.box='vertical', legend.box.just = 'left', legend.spacing = unit(-0.2, 'cm')) + guides(color = guide_legend(order=1, nrow=3, byrow=FALSE, override_aes=list(size=5)), linetype = guide_legend(order=2), fill = guide_legend(order=3, nrow=2, byrow=FALSE))
-
-p_marg <- ggplot() + stat_density(data=co2_2100, aes(x=value, fill=case, color=case), alpha=0.3, geom='area', position='identity') + scale_x_continuous(limits=c(0, 40), expand=c(0.001, 0.001)) + scale_y_continuous(expand=c(0.001, 0.001)) + coord_flip() + scale_fill_manual('', values=cbbpsqualitative) + scale_color_manual('', values=cbbpsqualitative) + theme(axis.text.y=element_blank(), axis.title.y=element_blank(), axis.ticks.y=element_blank(), panel.border=element_blank(), plot.margin=unit(c(0.5, 0.2, 0.7, -0.05), 'in'), axis.title.x=element_blank(), axis.ticks.x=element_blank(), axis.text.x=element_blank(), axis.line.y=element_line(color='black'), legend.position='none')
-
-p <- gtable_row('scenarios', grobs=list(ggplotGrob(p_series + theme(legend.position='none')), ggplotGrob(p_marg)), height=unit(5.5, 'in'), widths=unit(c(5, 1.5), 'in'), z=c(2,1))
-
-
-# extract legend from time series plot
-g <- ggplotGrob(p_series)$grobs
-legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-lheight <- sum(legend$height)
-lwidth <- sum(legend$width)
-
-fig <- arrangeGrob(p, legend, ncol=1,
-          heights=unit.c(unit(1, 'npc') - lheight, lheight)
-         )
-
-png('figures/ssp-slide.png', height=7, width=6.5, units='in', res=600)
-grid.draw(fig)
-dev.off()
