@@ -59,6 +59,7 @@ create_prior_list <- function(prior_df) {
       priors[[name]][['rand.fun']] <- 'rlnorm'
       priors[[name]][['meanlog']] <- -1
       priors[[name]][['sdlog']] <- 1
+    }
   }
   
   priors

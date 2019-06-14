@@ -7,7 +7,8 @@
 log_exp_gwp(model_out)
 }
 \arguments{
-\item{model_out}{Data frame of model output (from \code{run_model}).}
+\item{model_out}{Data frame of model output (from \code{\link{run_model}
+}).}
 }
 \value{
 Log-density value of the model average GWP per-capita growth rate.

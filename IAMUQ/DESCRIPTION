@@ -14,7 +14,8 @@ Imports: Rcpp (>= 1.0.0),
 	 mvtnorm,
 	 adaptMCMC,
 	 DEoptim,
-	 parallel
+	 parallel,
+	 magic
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: true
 RoxygenNote: 6.1.1

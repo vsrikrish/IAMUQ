@@ -1,6 +1,6 @@
 #' Run Markov Chain Monte Carlo (MCMC) to calibrate the IAM.
 #'
-#' \code{run_mcmc} uses adaptive MCMC (with the \code{adaptMCMC) package) to
+#' \code{run_mcmc} uses adaptive MCMC (with the \code{adaptMCMC} package) to
 #'  calibrate the IAM.
 #'
 #' When run in parallel, \code{run_mcmc} uses all of the available cores (or
@@ -21,7 +21,7 @@
 #'  "iid" or "var"). The log-likelihood function associated with the
 #'  structure should have the name log_lik_residtype.
 #' @param prior_df Data frame of prior information (such as that produced by
-#'  \code{\link{create_prior_list)}}.
+#'  \code{\link{create_prior_list}}).
 #' @param data_yrs Numeric vector of the years for which the data will be
 #'  assimilated.
 #' @param init Numeric vector of initial values for the MCMC chain.
@@ -65,7 +65,7 @@ run_mcmc <- function(post, parnames, residtype, prior_df, data_yrs, init, n_iter
   # otherwise just run chains
   if (parallel) {
     ncores <- parallel::detectCores()
-    mcmc_out <- MCMC.parallel(post, n_iter, init=init, n.chain=n_chain, n.cpu=ncores, acc.rate=rate_accept, n.start = adapt_start, gamma=0.51, scale=stepsize, adapt=5e5, list=TRUE, packages=c('BAUcalib'), parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', residtype), ...)
+    mcmc_out <- MCMC.parallel(post, n_iter, init=init, n.chain=n_chain, n.cpu=ncores, acc.rate=rate_accept, n.start = adapt_start, gamma=0.51, scale=stepsize, adapt=5e5, list=TRUE, packages=c('IAMUQ'), parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', residtype), ...)
   } else {
       mcmc_out <- MCMC(post, n_iter, init=init, n.chain=n_chain, acc.rate=rate_accept, n.start = adapt_start, gamma=0.51, scale=stepsize, adapt=5e5, list=TRUE, parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', residtype), ...)
   }

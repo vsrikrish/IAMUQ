@@ -225,6 +225,7 @@ residuals <- function(model_out, dat) {
 #'  \item sigma_prod, the variance of the innovations for economic output
 #'  ;
 #'  \item sigma_emis, the variance of the innovations for emissions;
+#'  }
 #' @param parnames Character vector of parameter names. These names should
 #'  align with the values in \code{pars}, but they don't need to be in any
 #'  particular order otherwise.
@@ -237,15 +238,23 @@ residuals <- function(model_out, dat) {
 #' @param ff_const_yrs Numeric vector setting the years over which the fossil
 #'  fuel constraint should be evaluated. This can be a full sequence or a
 #'  vector with the start and end years.
+#' @param hoyrs Integer vector of years that should be held out from the
+#'  likelihood function computation.
 #' @return Numeric value for the log-likelihood of the parameters given the
 #'  data and the fossil fuel constraint value.
-log_lik_iid <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yrs=1700:2500) {
+log_lik_iid <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
   # check for fossil fuel constraint
   if (!check_fossil_constraint(model_out, start=ff_const_yrs[1], end=ff_const_yrs[length(ff_const_yrs)], thresh=thresh)) {
     return(-Inf)
   }
   
-  r <- residuals(model_out, dat)
+  # remove held out data if there is any and compute residuals
+  if (length(hoyrs) > 0) {
+    d <- lapply(dat, function(l) l[-which(l$year %in% hoyrs)])
+    r <- residuals(model_out, d)
+  } else {
+    r <- residuals(model_out, dat)
+  }
   
   # extract likelihood parameters
   sigma <- pars[match(c('sigma_pop', 'sigma_prod', 'sigma_emis'), parnames)]
@@ -311,19 +320,34 @@ log_lik_iid <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
 #' @param ff_const_yrs Numeric vector setting the years over which the fossil
 #'  fuel constraint should be evaluated. This can be a full sequence or a
 #'  vector with the start and end years.
+#' @param hoyrs Integer vector of years that should be held out from the
+#'  likelihood function computation.
 #' @return Numeric value for the log-likelihood of the parameters given the
 #'  data and the fossil fuel constraint value.
-log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yrs=1700:2500) {
+log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
   # check fossil fuel constraint
   if (!check_fossil_constraint(model_out, start=ff_const_yrs[1], end=ff_const_yrs[length(ff_const_yrs)], thresh=thresh)) {
     return(-Inf)
   }
   
-  # compute residuals
-  r <- residuals(model_out, dat)
+  # remove held out data if there is any, find indices for removal from the covariance matrix, and compute residuals
+  if (length(hoyrs) > 0) {
+    d <- lapply(dat, function(l) l[-which(l$year %in% hoyrs), ]) # remove held out data
+    hoyridx <- which(dat[[1]]$year %in% hoyrs) # find indices of held out years
+    # find covariance matrix indices of held out data
+    hoidx <- numeric(0)
+    for (i in 1:length(dat)) {
+      hoidx <- c(hoidx, length(dat)*(hoyridx-1)+i)
+    }
+    # compute residuals
+    r <- residuals(model_out, d)
+  } else {
+    # just compute residuals
+    r <- residuals(model_out, dat)
+  }
   
   # create vectorized residual vector
-  r_vec <- matrix(do.call(rbind,r), nrow=1)
+  r_vec <- as.numeric(matrix(do.call(rbind,r), nrow=1))
   
   # extract likelihood parameters
   a <- pars[match(c('a_11', 'a_21', 'a_31', 'a_12', 'a_22', 'a_32', 'a_13', 'a_23', 'a_33'), parnames)] # VAR model error coefficient
@@ -342,12 +366,14 @@ log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
   Sigma_x <- matrix(Sigma_x_vec, nrow=nrow(A), ncol=ncol(A))
   
   # compute powers of A for autocovariance matrix computation
-  n <- length(r[[1]])
+  n <- nrow(dat[[1]])
 
   H <- abs(outer(1:n, 1:n, '-')) # matrix of indices for blocks as they should be combined
   D <- diag(eps) # matrix of observation error variances
   
-  Sigma <- cov_mat(A, Sigma_x, D, H) # generate
+  Sigma <- cov_mat(A, Sigma_x, D, H) # generate covariance matrix
+  # if there are held out yrs, remove their components from Sigma
+  Sigma <- Sigma[-hoidx, -hoidx]
   
   # compute log-likelihood of residuals with respect to zero mean
   mvtnorm::dmvnorm(r_vec, sigma=Sigma, log=TRUE)
@@ -418,15 +444,17 @@ log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
 #'  function (provided functions are \code{log_lik_iid} and
 #'  '\code{log_lik_var}).
 #' @param exp_gwp Boolean: should the provided expert assessment of average
-#'  GWP growth from 2010-2100 (\code{log_exp_gwp)) be inverted for additional
+#'  GWP growth from 2010-2100 (\code{log_exp_gwp}) be inverted for additional
 #'  prior structure?
 #' @param thresh Numeric value setting the fossil fuel resource constraint.
 #' @param ff_const_yrs Numeric vector setting the years over which the fossil
 #'  fuel constraint should be evaluated. This can be a full sequence or a
 #'  vector with the start and end years.
+#' @param hoyrs Integer vector of years that should be held out from the
+#'  likelihood function computation.
 #' @return Numeric value for the log-posterior of the parameters given the
 #'  priors, the data and the fossil fuel constraint value.
-log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500) {
+log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
   # check for parameter constraints and return -Inf if not satisfied
   if (!check_param_constraints(pars, parnames))  {
     return(-Inf)
@@ -441,7 +469,7 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh
   # run model to end date, which is 2500
   yr <- 1700:2500
   model_out <- run_model(pars, parnames, start=1700, end=2500)
-  ll <- match.fun(lik_fun)(pars, parnames, model_out, dat, thresh=thresh, ff_const_yrs=ff_const_yrs) # evaluate likelihood
+  ll <- match.fun(lik_fun)(pars, parnames, model_out, dat, thresh=thresh, ff_const_yrs=ff_const_yrs, hoyrs=hoyrs) # evaluate likelihood
   
   lpost <- lpri + ll # store sum of log-likelihood and log-prior
 
@@ -453,8 +481,8 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh
   lpost # return log-posterior vlaue
 }
 
-#' Negative ;og-posterior density for the provided parameter values given the
-#'  data
+#' Negative log-posterior density for the provided parameter values given the
+#'  data.
 #'
 #' \code{neg_log_post} returns the negative of the log-posterior density
 #'  value for the provided parameter values, based on the provided list of
@@ -521,7 +549,7 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh
 #'  function (provided functions are \code{log_lik_iid} and
 #'  '\code{log_lik_var}).
 #' @param exp_gwp Boolean: should the provided expert assessment of average
-#'  GWP growth from 2010-2100 (\code{log_exp_gwp)) be inverted for additional
+#'  GWP growth from 2010-2100 (\code{log_exp_gwp}) be inverted for additional
 #'  prior structure?
 #' @param thresh Numeric value setting the fossil fuel resource constraint.
 #' @param ff_const_yrs Numeric vector setting the years over which the fossil
@@ -532,7 +560,7 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh
 neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500) {
 
   # evaluate log-likelihood
-  lp <- log_post(pars,parnames, priors, dat, lik_fun, exp_co2, exp_gwp, thresh=thresh, ff_const_yrs=ff_const_yrs)
+  lp <- log_post(pars,parnames, priors, dat, lik_fun, exp_gwp, thresh=thresh, ff_const_yrs=ff_const_yrs)
   # return negative log-likelihood
   -1*lp
 }

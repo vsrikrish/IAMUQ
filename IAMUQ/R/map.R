@@ -11,7 +11,7 @@
 #'  "iid" or "var"). The log-likelihood function associated with the
 #'  structure should have the name log_lik_residtype.
 #' @param prior_df Data frame of prior information (such as that produced by
-#'  \code{\link{create_prior_list)}}.
+#'  \code{\link{create_prior_list}}).
 #' @param data_yrs Numeric vector of the years for which the data will be
 #'  assimilated.
 #' @param n_iter Number of iterations for \code{\link{DEoptim}}.
