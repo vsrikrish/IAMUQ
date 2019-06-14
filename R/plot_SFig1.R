@@ -1,14 +1,14 @@
 library(ggplot2)
 library(grid)
 library(gridExtra)
-library(BAUcalib)
+library(IAMUQ)
 
 pars <- readRDS('output/map_iid.rds')$optim$bestmem
 parnames <- names(pars)
 
 model_out <- run_model(pars, parnames)
 
-dat <- lapply(baudata, function(l) {l[l$year %in% 1820:2014,]})
+dat <- lapply(iamdata, function(l) {l[l$year %in% 1820:2014,]})
 
 res <- residuals(pars, parnames, model_out, dat)
 res <- lapply(setNames(names(res), names(res)), function(n) {data.frame(year=dat[[n]]$year, residuals=res[[n]])})
