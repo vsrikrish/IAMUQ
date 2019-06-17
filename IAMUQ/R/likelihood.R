@@ -344,6 +344,7 @@ log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
   } else {
     # just compute residuals
     r <- residuals(model_out, dat)
+    hoidx <- numeric(0) # no held-out data
   }
   
   # create vectorized residual vector
@@ -373,7 +374,9 @@ log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
   
   Sigma <- cov_mat(A, Sigma_x, D, H) # generate covariance matrix
   # if there are held out yrs, remove their components from Sigma
-  Sigma <- Sigma[-hoidx, -hoidx]
+  if (length(hoidx) > 0) {
+    Sigma <- Sigma[-hoidx, -hoidx]
+  }
   
   # compute log-likelihood of residuals with respect to zero mean
   mvtnorm::dmvnorm(r_vec, sigma=Sigma, log=TRUE)
@@ -557,10 +560,10 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh
 #'  vector with the start and end years.
 #' @return Numeric value for the log-posterior of the parameters given the
 #'  priors, the data and the fossil fuel constraint value.
-neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500) {
+neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
 
   # evaluate log-likelihood
-  lp <- log_post(pars,parnames, priors, dat, lik_fun, exp_gwp, thresh=thresh, ff_const_yrs=ff_const_yrs)
+  lp <- log_post(pars,parnames, priors, dat, lik_fun, exp_gwp, thresh=thresh, ff_const_yrs=ff_const_yrs, hoyrs=hoyrs)
   # return negative log-likelihood
   -1*lp
 }
