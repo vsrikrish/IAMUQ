@@ -14,14 +14,13 @@ following entries columns:\itemize{
 \item type, the type of prior density function. Options are "normal,"
 "uniform," and "log-normal";
 \item lower, numeric value defining the lower value. If the type is
-"normal," this should be the 0.05 quantile (or the lower bound of the 90%
-credible interval). If the type is "uniform," this should be the lower
-bound of the distribution. If the log-normal, this value is ignored;
+"normal" or "log-normal" this should be the 0.05 quantile (or the lower
+bound of the 90% credible interval). If the type is "uniform," this
+should be the lower bound of the distribution;
 \item upper, numeric value defining the upper value. If the type is
-"normal," this should be the 0.95 quantile (or the upper bound of the 90%
-credible interval). If the type is "uniform," this should be the upper
-bound of the distribution. If the log-normal, this value is ignored.
-}}
+"normal" or "log-normal" this should be the 0.95 quantile (or the upper
+bound of the 90% credible interval). If the type is "uniform," this
+should be the upper bound of the distribution. }}
 }
 \value{
 List with each entry corresponding to an individual parameter.
@@ -41,6 +40,5 @@ List with each entry corresponding to an individual parameter.
 \code{create_prior_list} creates a list for use in \code{\link{log_pri}}.
  The parameters for each prior density function are estimated from the
  confidence interval bounds in the data frame. Available (by default)
- density functions are normal, uniform, and log-normal. Log-normal priors
- are defined by meanlog = -1 and sdlog=1 no matter what.
+ density functions are normal, uniform, and log-normal.
 }
