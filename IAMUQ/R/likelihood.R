@@ -127,6 +127,7 @@ check_param_constraints <- function(pars, parnames) {
   # read in parameter values
   delta <- pars[match('delta', parnames)]
   s <- pars[match('s', parnames)]
+  pi <- pars[match('pi', parnames)]
   rho <- pars[match(c('rho2', 'rho3'), parnames)]
   tau <- pars[match(c('tau2', 'tau3', 'tau4'), parnames)]
   # check if the eigenvalues of the VAR coefficient matrix are within the unit circle (for stability of the VAR process)
@@ -137,7 +138,7 @@ check_param_constraints <- function(pars, parnames) {
     eig_flag <- all(vapply(ev, abs, numeric(1)) <= 1)
   }
   
-  (delta < s) && (rho[1] >= rho[2]) && (all(tau == cummax(tau))) && eig_flag
+  (delta < s) && (s < 1) && (pi < 1) && (rho[1] >= rho[2]) && (all(tau == cummax(tau))) && eig_flag
   
 }
 

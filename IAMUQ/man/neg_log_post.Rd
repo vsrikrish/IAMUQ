@@ -6,7 +6,7 @@
  data.}
 \usage{
 neg_log_post(pars, parnames, priors, dat, lik_fun, exp_gwp = FALSE,
-  thresh = 6000, ff_const_yrs = 1700:2500)
+  thresh = 6000, ff_const_yrs = 1700:2500, hoyrs = NULL)
 }
 \arguments{
 \item{pars}{Numeric vector of parameter values. These parameters must
