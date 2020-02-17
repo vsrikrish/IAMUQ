@@ -24,6 +24,32 @@ log_exp_gwp <- function(model_out) {
   # distribution parameters are on a percentage scale, so multiply rate by 100
   dnorm(gwp_rt * 100, mean=mu, sd=sigma, log=TRUE)
 }
+
+#' Log-density for the expert assessment of CO2 emissions in 2100.
+#'
+#' \code{log_exp_co2} returns the log-density for the expert assessment of
+#'    CO2 emissions in 2100 from Ho et al (2019), which is used in
+#'    probabilistic inversion. This
+#'
+#' This function uses a normal distribution fit to the median 25% and 75%
+#'  percentiles of experts who did not include negative emissions levels in
+#'  their central 90% interval. It evaluates the density value of the model
+#'  output based on this reference distribution.
+#'
+#' @param model_out Data frame of model output (from \code{\link{run_model}
+#' }).
+#' @return Log-density value of the model average GWP per-capita growth rate.
+log_exp_co2 <- function(model_out) {
+  # set parameter values for expert assessment distribution
+  mu=18.5 # mean
+  sigma=9.63 # sd on percentage scale
+
+  # get CO2 emissions level in 2100 from model output
+  co2_2100 <- model_out$C[model_out$year == 2100]
+  
+  # compute and return log-likelihood of CO2 emissions given expert assessment
+  dnorm(co2_2100, mean=mu, sd=sigma, log=TRUE)
+}
   
 #' Log-prior density for the provided parameter values
 #'
@@ -86,6 +112,7 @@ log_exp_gwp <- function(model_out) {
 #'  }
 #' @return Joint log-prior density value parameters based on the given
 #'  priors.
+#' @export
 log_pri <- function(pars, parnames, priors) {
   
   # this function evaluates the log-prior density for a given parameter
@@ -176,6 +203,7 @@ check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh=6000
 #'  (population), 'prod' (production), and 'emissions,' and each data frame
 #'  should have two columns, 'year' and 'value'.
 #' @return List of model residuals, with the same names as the \code{dat}.
+#' @export
 residuals <- function(model_out, dat) {
   # compute residuals for each output
   r <- list()
@@ -243,6 +271,7 @@ residuals <- function(model_out, dat) {
 #'  likelihood function computation.
 #' @return Numeric value for the log-likelihood of the parameters given the
 #'  data and the fossil fuel constraint value.
+#' @export
 log_lik_iid <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
   # check for fossil fuel constraint
   if (!check_fossil_constraint(model_out, start=ff_const_yrs[1], end=ff_const_yrs[length(ff_const_yrs)], thresh=thresh)) {
@@ -325,6 +354,7 @@ log_lik_iid <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
 #'  likelihood function computation.
 #' @return Numeric value for the log-likelihood of the parameters given the
 #'  data and the fossil fuel constraint value.
+#' @export
 log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
   # check fossil fuel constraint
   if (!check_fossil_constraint(model_out, start=ff_const_yrs[1], end=ff_const_yrs[length(ff_const_yrs)], thresh=thresh)) {
@@ -450,6 +480,9 @@ log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
 #' @param exp_gwp Boolean: should the provided expert assessment of average
 #'  GWP growth from 2010-2100 (\code{log_exp_gwp}) be inverted for additional
 #'  prior structure?
+#' @param exp_co2 Boolean: should the provided expert assessment of CO2
+#'  emissions in 2100 (\code{log_exp_co2}) be inverted for additional
+#'  prior structure?
 #' @param thresh Numeric value setting the fossil fuel resource constraint.
 #' @param ff_const_yrs Numeric vector setting the years over which the fossil
 #'  fuel constraint should be evaluated. This can be a full sequence or a
@@ -458,7 +491,8 @@ log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
 #'  likelihood function computation.
 #' @return Numeric value for the log-posterior of the parameters given the
 #'  priors, the data and the fossil fuel constraint value.
-log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
+#' @export
+log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
   # check for parameter constraints and return -Inf if not satisfied
   if (!check_param_constraints(pars, parnames))  {
     return(-Inf)
@@ -480,6 +514,9 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh
   # if expert assessment inversion is included, add log-expert assessment density
   if (exp_gwp) {
     lpost <- lpost + log_exp_gwp(model_out)
+  }
+  if (exp_co2) {
+    lpost <- lpost + log_exp_co2(model_out)
   }
 
   lpost # return log-posterior vlaue
@@ -555,13 +592,19 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh
 #' @param exp_gwp Boolean: should the provided expert assessment of average
 #'  GWP growth from 2010-2100 (\code{log_exp_gwp}) be inverted for additional
 #'  prior structure?
+#' @param exp_co2 Boolean: should the provided expert assessment of CO2
+#'  emissions in 2100 (\code{log_exp_co2}) be inverted for additional
+#'  prior structure?
 #' @param thresh Numeric value setting the fossil fuel resource constraint.
 #' @param ff_const_yrs Numeric vector setting the years over which the fossil
 #'  fuel constraint should be evaluated. This can be a full sequence or a
 #'  vector with the start and end years.
+#' @param hoyrs Integer vector of years that should be held out from the
+#'  likelihood function computation.
 #' @return Numeric value for the log-posterior of the parameters given the
 #'  priors, the data and the fossil fuel constraint value.
-neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
+#' @export
+neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
 
   # evaluate log-likelihood
   lp <- log_post(pars,parnames, priors, dat, lik_fun, exp_gwp, thresh=thresh, ff_const_yrs=ff_const_yrs, hoyrs=hoyrs)

@@ -32,6 +32,7 @@
 #' @param ... Additional parameters to be passed to the log-posterior
 #'  function.
 #' @return List of \code{\link{adaptMCMC}} output.
+#' @export
 run_mcmc <- function(post, parnames, residtype, prior_df, data_yrs, init, n_iter=1e6, n_chain=4, parallel=TRUE, ...) {
 
   ## prune data to specified years

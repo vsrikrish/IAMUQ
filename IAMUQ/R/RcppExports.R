@@ -12,7 +12,6 @@
 #' @param D Numeric covariance matrix for the observation errors.
 #' @param H Integer matrix giving the lags corresponding to each block.
 #' @return Joint covariance matrix, including observation error variances.
-#' @export
 cov_mat <- function(A, B, D, H) {
     .Call(`_IAMUQ_cov_mat`, A, B, D, H)
 }
@@ -40,7 +39,6 @@ cov_mat <- function(A, B, D, H) {
 #' @param rho Numeric vector for the carbon intensities of each technology.
 #' @param init Optional initial values for Q, and C.
 #' @return Data frame of model output.
-#' @export
 model_run <- function(yr, P0, psi, alpha, A0, As, s, lambda, delta, pi, kappa, gamma, rho, init) {
     .Call(`_IAMUQ_model_run`, yr, P0, psi, alpha, A0, As, s, lambda, delta, pi, kappa, gamma, rho, init)
 }

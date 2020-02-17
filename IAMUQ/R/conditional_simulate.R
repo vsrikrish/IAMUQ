@@ -63,6 +63,7 @@
 #' @return Data frame of model simulation, with columns 'year, 'P'
 #'  (population), 'Q' (economic output), and 'C' (CO2 emissions). Only the
 #'  held-out and projected simulation years are returned.
+#' @export
 cond_sim_model <- function(pars, parnames, dat, projyrs=NULL, hoyrs=NULL) {
   # issue error if neither projyrs nor hoyrs is defined
   if (is.null(projyrs) & is.null(hoyrs)) {

@@ -49,6 +49,7 @@
 #'  \item \code{Q} (gross world product, or economic output, in trillions
 #'  USD$2011);
 #'  \item \code{C} (CO2 emissions, in Gt C/yr).}
+#' @export
 run_model <- function(pars, parnames, start=1700, end=2017, P0=NULL, Q0=NULL, C0=NULL) {
   # create time vector
   yr <- seq(start, end)

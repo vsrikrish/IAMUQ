@@ -31,6 +31,7 @@
 #'  \item other parameters required for the various function calls, which
 #'  depend on the type of distribution.
 #'  }
+#' @export
 create_prior_list <- function(prior_df) {
   parnames <- prior_df[, 'name']
   priors <- vector('list', length(parnames))

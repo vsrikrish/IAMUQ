@@ -22,6 +22,7 @@
 #' @param ... Other parameters passed to the log-posterior function.
 #' @return Output of \code{\link{DEoptim}} call. The best parameter vector is
 #'  named using parnames.
+#' @export
 find_map <- function(post, parnames, residtype, prior_df, data_yrs, n_iter=5e3, NP_scale=25, parallel=TRUE, trace=FALSE, ...) {
 
   ## prune data to specified years
