@@ -28,7 +28,7 @@ tol9qualitative=c("#88CCEE", "#44AA99", "#117733", "#332288", "#AA4499",  "#CC66
 cbbpsqualitative <- c("#000000", "#e79f00", "#9ad0f3", "#CC79A7", "#0072B2", "#009E73", "#F0E442", "#D55E00")
 
 scenarios <- c('base', 'low', 'high', 'alt_zc')
-scen_labels <- c('Base', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Carbon')
+scen_labels <- c('Standard', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Carbon')
 
 get_emissions <- function(sim_out) {
   do.call(cbind, lapply(sim_out, function(l) l$out$C))

@@ -30,7 +30,7 @@ ssp_melt <- ssp_melt[ssp_melt$Year == 2100, ]
 
 
 scenarios <- c('base', 'low', 'high', 'alt_zc')
-scen_labels <- c('Base', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Carbon')
+scen_labels <- c('Standard', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Carbon')
 
 get_emissions <- function(sim_out) {
   do.call(cbind, lapply(sim_out, function(l) l$out$C))
@@ -126,10 +126,10 @@ p <- p + annotation_custom(grob=grid::textGrob(label=expression('Increasing Prob
 
 p <- p + coord_cartesian(clip = "off")
   
-pdf('figures/co2_cum-cdf-test.pdf', width=3.5, height=4.1)
+pdf('figures/co2_cum-cdf.pdf', width=3.5, height=4.1)
 p
 dev.off()
 
-png('figures/co2_cum-cdf-test.png', width=89, height=100, units='mm', res=600)
+png('figures/co2_cum-cdf.png', width=89, height=100, units='mm', res=600)
 p
 dev.off()
