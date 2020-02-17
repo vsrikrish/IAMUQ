@@ -85,8 +85,9 @@ budget <- 1500 / 3.67
 ssp_vjust <- c(-1, 1, 1, 1, -1, -1, 0)  
 ssp_hjust <- c(0, -0.5, -0.5, 0.25, 0, 0, 0)
 
-p <- ggplot() + geom_vline(data=ssp_cum_melt, aes(xintercept=value), linetype='solid', color='grey') + 
-  geom_rect(xmin=0, xmax=budget, ymin=0, ymax=1, fill='darkgreen', alpha=0.4) +
+p <- ggplot() + 
+  geom_rect(data=data.frame(xmin=0, xmax=budget, ymin=0, ymax=1), aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), fill='darkgreen', alpha=0.2) +
+  geom_vline(data=ssp_cum_melt, aes(xintercept=value), linetype='solid', color='grey') + 
   stat_ecdf(data=co2_cum, aes(x=value, color=case))  + 
   scale_x_continuous(expression(CO[2]~Emissions~'from'~2018~'-'~2100~(Gt~C)), limits=c(0, 2500), expand=c(0, 0)) + 
   scale_y_continuous('Cumulative Probability', expand=c(0, 0),
@@ -105,7 +106,11 @@ for (i in 1:nrow(ssp_cum_melt)) {
   if (i == 4) {
     p <- p + annotation_custom(grob=grid::linesGrob(arrow=grid::arrow(type='closed', ends='first', length=unit(1.5, 'mm')), gp=gpar(fill='black')),
                                xmax=ssp_cum_melt[i, 'value'], xmin=ssp_cum_melt[i, 'value'], 
-                               ymin=1, ymax=1.08 - 0.03*ssp_vjust[i])
+                               ymin=1, ymax=1.09 - 0.03*ssp_vjust[i])
+  } else if (ssp_vjust[i] == -1) {
+    p <- p + annotation_custom(grob=grid::linesGrob(arrow=grid::arrow(type='closed', ends='first', length=unit(1.5, 'mm')), gp=gpar(fill='black')),
+                               xmax=ssp_cum_melt[i, 'value'], xmin=ssp_cum_melt[i, 'value'] - 200*ssp_hjust[i], 
+                               ymin=1, ymax=1.07 - 0.04*ssp_vjust[i])
   } else {
     p <- p + annotation_custom(grob=grid::linesGrob(arrow=grid::arrow(type='closed', ends='first', length=unit(1.5, 'mm')), gp=gpar(fill='black')),
                              xmax=ssp_cum_melt[i, 'value'], xmin=ssp_cum_melt[i, 'value'] - 200*ssp_hjust[i], 
