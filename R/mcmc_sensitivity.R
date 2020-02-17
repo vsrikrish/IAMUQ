@@ -24,6 +24,7 @@ data_yrs <- 1820:2014 # years for observational constraints
 ff_thresh <- 6000 # fossil fuel constraint in GtC
 ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
 exp_gwp <- TRUE # do we do probabilistic inversion for average GWP per capita?
+exp_co2 <- TRUE
 residtype <- 'var'
   
 if (residtype == 'ar') {
@@ -64,10 +65,10 @@ if (scenario == 'alt_s') {
 
 
 ## read in MAP estimate for that scenario as the initial value as the
-map <- readRDS(paste0('output/map_', scenario, '.rds'))
+map <- readRDS(paste0('output/map_', scenario, '-gwp-co2.rds'))
 
 ## run MCMC chains (using parallel default)
-mcmc_out <- run_mcmc(log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, init=map$optim$bestmem, n_iter=2e6, thresh=ff_thresh, ff_const_yrs=ff_const_yrs, exp_gwp=exp_gwp)
+mcmc_out <- run_mcmc(log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, init=map$optim$bestmem, n_iter=2e6, thresh=ff_thresh, ff_const_yrs=ff_const_yrs, exp_gwp=exp_gwp, exp_co2=exp_co2)
 
 ## save estimate
-saveRDS(mcmc_out, paste0('output/mcmc_', scenario, '.rds'))
+saveRDS(mcmc_out, paste0('output/mcmc_', scenario, '-gwp-co2.rds'))

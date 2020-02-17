@@ -19,7 +19,7 @@ if (file.exists(mcmc_fname)) {
   mcmc_out <- readRDS(mcmc_fname)
 } else {
   # read in full data MAP estimate as the MCMC initial value
-  map <- readRDS('output/map_base.rds')$optim$bestmem
+  map <- readRDS('output/map_base-gwp-co2.rds')$optim$bestmem
   parnames <- names(map)
   
   # get prior dataframe

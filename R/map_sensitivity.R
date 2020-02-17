@@ -23,6 +23,7 @@ data_yrs <- 1820:2014 # years for observational constraints
 ff_thresh <- 6000 # fossil fuel constraint in GtC
 ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
 exp_gwp <- TRUE # do we do probabilistic inversion for average GWP per capita?
+exp_co2 <- TRUE
 residtype <- 'var'
   
 if (residtype == 'ar') {
@@ -61,7 +62,15 @@ if (scenario == 'alt_s') {
 }
 
 ## find MAP estimate
-map_out <- find_map(neg_log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, NP_scale=25, n_iter=5000, parallel=TRUE, trace=FALSE, thresh=ff_thresh, ff_const_yrs=ff_const_yrs, exp_gwp=exp_gwp)
+map_out <- find_map(neg_log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, NP_scale=25, n_iter=5000, parallel=TRUE, trace=FALSE, thresh=ff_thresh, ff_const_yrs=ff_const_yrs, exp_gwp=exp_gwp, exp_co2=exp_co2)
 
 ## save estimate
-saveRDS(map_out, paste0('output/map_', scenario, '.rds'))
+## save estimate
+appendix <- ''
+if (exp_gwp) {
+  appendix <- paste0(appendix, '-gwp')
+}
+if (exp_co2) {
+  appendix <- paste0(appendix, '-co2')
+}
+saveRDS(map_out, paste0('output/map_', scenario, appendix, '.rds'))
