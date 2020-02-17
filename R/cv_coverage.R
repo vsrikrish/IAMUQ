@@ -14,7 +14,7 @@ compute_q <- function(out) {
 
 coverage <- function(q, dat) {
   d <- merge(dat, q, by='year')
-  mean(apply(d, 1, function(r) {(r$lower <= r$value) & (r$upper >= r$value)}))
+  mean(apply(d, 1, function(r) {(r['lower'] <= r['value']) & (r['upper'] >= r['value'])}))
 }
 
 cv_sim <- list.files(path='~/scratch/crossval', pattern='sim*', full.names=TRUE)
