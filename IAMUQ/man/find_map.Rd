@@ -4,8 +4,18 @@
 \alias{find_map}
 \title{Find the maximum a posteriori (MAP) estimate for the IAM.}
 \usage{
-find_map(post, parnames, residtype, prior_df, data_yrs, n_iter = 5000,
-  NP_scale = 25, parallel = TRUE, trace = FALSE, ...)
+find_map(
+  post,
+  parnames,
+  residtype,
+  prior_df,
+  data_yrs,
+  n_iter = 5000,
+  NP_scale = 25,
+  parallel = TRUE,
+  trace = FALSE,
+  ...
+)
 }
 \arguments{
 \item{post}{Function call (not string) for the log-posterior density

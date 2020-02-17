@@ -4,8 +4,18 @@
 \alias{log_post}
 \title{Log-posterior density for the provided parameter values given the data}
 \usage{
-log_post(pars, parnames, priors, dat, lik_fun, exp_gwp = FALSE,
-  thresh = 6000, ff_const_yrs = 1700:2500, hoyrs = NULL)
+log_post(
+  pars,
+  parnames,
+  priors,
+  dat,
+  lik_fun,
+  exp_gwp = FALSE,
+  exp_co2 = FALSE,
+  thresh = 6000,
+  ff_const_yrs = 1700:2500,
+  hoyrs = NULL
+)
 }
 \arguments{
 \item{pars}{Numeric vector of parameter values. These parameters must
@@ -70,6 +80,10 @@ function (provided functions are \code{log_lik_iid} and
 
 \item{exp_gwp}{Boolean: should the provided expert assessment of average
 GWP growth from 2010-2100 (\code{log_exp_gwp}) be inverted for additional
+prior structure?}
+
+\item{exp_co2}{Boolean: should the provided expert assessment of CO2
+emissions in 2100 (\code{log_exp_co2}) be inverted for additional
 prior structure?}
 
 \item{thresh}{Numeric value setting the fossil fuel resource constraint.}

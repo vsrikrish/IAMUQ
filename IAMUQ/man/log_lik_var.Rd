@@ -5,8 +5,15 @@
 \title{Compute the log-likelihood under the assumption of residuals jointly
  distributed according to a VAR(1) model.}
 \usage{
-log_lik_var(pars, parnames, model_out, dat, thresh = 6000,
-  ff_const_yrs = 1700:2500, hoyrs = NULL)
+log_lik_var(
+  pars,
+  parnames,
+  model_out,
+  dat,
+  thresh = 6000,
+  ff_const_yrs = 1700:2500,
+  hoyrs = NULL
+)
 }
 \arguments{
 \item{pars}{Numeric vector of parameter values. These parameters must

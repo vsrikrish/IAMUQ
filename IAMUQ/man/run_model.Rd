@@ -4,8 +4,15 @@
 \alias{run_model}
 \title{Run the integrated assessment model from Srikrishnan & Keller (2019).}
 \usage{
-run_model(pars, parnames, start = 1700, end = 2017, P0 = NULL,
-  Q0 = NULL, C0 = NULL)
+run_model(
+  pars,
+  parnames,
+  start = 1700,
+  end = 2017,
+  P0 = NULL,
+  Q0 = NULL,
+  C0 = NULL
+)
 }
 \arguments{
 \item{pars}{Numeric vector of parameter values. These parameters must

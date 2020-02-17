@@ -5,8 +5,18 @@
 \title{Negative log-posterior density for the provided parameter values given the
  data.}
 \usage{
-neg_log_post(pars, parnames, priors, dat, lik_fun, exp_gwp = FALSE,
-  thresh = 6000, ff_const_yrs = 1700:2500, hoyrs = NULL)
+neg_log_post(
+  pars,
+  parnames,
+  priors,
+  dat,
+  lik_fun,
+  exp_gwp = FALSE,
+  exp_co2 = FALSE,
+  thresh = 6000,
+  ff_const_yrs = 1700:2500,
+  hoyrs = NULL
+)
 }
 \arguments{
 \item{pars}{Numeric vector of parameter values. These parameters must
@@ -73,11 +83,18 @@ function (provided functions are \code{log_lik_iid} and
 GWP growth from 2010-2100 (\code{log_exp_gwp}) be inverted for additional
 prior structure?}
 
+\item{exp_co2}{Boolean: should the provided expert assessment of CO2
+emissions in 2100 (\code{log_exp_co2}) be inverted for additional
+prior structure?}
+
 \item{thresh}{Numeric value setting the fossil fuel resource constraint.}
 
 \item{ff_const_yrs}{Numeric vector setting the years over which the fossil
 fuel constraint should be evaluated. This can be a full sequence or a
 vector with the start and end years.}
+
+\item{hoyrs}{Integer vector of years that should be held out from the
+likelihood function computation.}
 }
 \value{
 Numeric value for the log-posterior of the parameters given the

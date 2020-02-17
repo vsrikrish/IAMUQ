@@ -4,8 +4,18 @@
 \alias{run_mcmc}
 \title{Run Markov Chain Monte Carlo (MCMC) to calibrate the IAM.}
 \usage{
-run_mcmc(post, parnames, residtype, prior_df, data_yrs, init,
-  n_iter = 1e+06, n_chain = 4, parallel = TRUE, ...)
+run_mcmc(
+  post,
+  parnames,
+  residtype,
+  prior_df,
+  data_yrs,
+  init,
+  n_iter = 1e+06,
+  n_chain = 4,
+  parallel = TRUE,
+  ...
+)
 }
 \arguments{
 \item{post}{Function call (not string) for the log-posterior density

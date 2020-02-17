@@ -5,8 +5,15 @@
 \title{Compute the log-likelihood under the assumption of independently and
  identically Gaussian distributed residuals.}
 \usage{
-log_lik_iid(pars, parnames, model_out, dat, thresh = 6000,
-  ff_const_yrs = 1700:2500, hoyrs = NULL)
+log_lik_iid(
+  pars,
+  parnames,
+  model_out,
+  dat,
+  thresh = 6000,
+  ff_const_yrs = 1700:2500,
+  hoyrs = NULL
+)
 }
 \arguments{
 \item{pars}{Numeric vector of parameter values. These parameters must

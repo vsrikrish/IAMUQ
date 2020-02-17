@@ -4,8 +4,22 @@
 \alias{model_run}
 \title{Run the IAM.}
 \usage{
-model_run(yr, P0, psi, alpha, A0, As, s, lambda, delta, pi, kappa, gamma,
-  rho, init)
+model_run(
+  yr,
+  P0,
+  psi,
+  alpha,
+  A0,
+  As,
+  s,
+  lambda,
+  delta,
+  pi,
+  kappa,
+  gamma,
+  rho,
+  init
+)
 }
 \arguments{
 \item{yr}{Numeric vector of years for the model run.}
