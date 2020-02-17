@@ -6,14 +6,14 @@
 #' @doctype package
 #' @name IAMUQ
 #' @import Rcpp
-#' @importFrom stats rnorm dnorm qnorm
+#' @importFrom stats rnorm dnorm qnorm rlnorm dlnorm qlnorm
 #' @importFrom mvtnorm dmvnorm rmvnorm
 #' @importFrom parallel detectCores
 #' @importFrom adaptMCMC MCMC
 #' @importFrom adaptMCMC MCMC.parallel
 #' @importFrom DEoptim DEoptim
 #' @importFrom magic adiag
-#' @useDynLib IAMUQ
+#' @useDynLib IAMUQ, .registration = TRUE
 NULL
 
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines
