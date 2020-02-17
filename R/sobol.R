@@ -8,7 +8,7 @@ n_samp <- 1e5 # define size of ensemble
 n_boot <- 1e4 # number of bootstrap samples
 
 ## load and combine MCMC output
-mcmc_out <- readRDS('output/mcmc_base.rds')
+mcmc_out <- readRDS('output/mcmc_base-gwp-co2.rds')
 mcmc_length <- nrow(mcmc_out[[1]]$samples)
 burnin <- 5e5
 post <- do.call(rbind, lapply(mcmc_out[1:4], function(l) l$samples[(burnin+1):mcmc_length,]))
@@ -30,30 +30,8 @@ sob_samp2 <- lapply(parnames, function(p) sample_value(n=n_samp, parvals=post[so
 sob_samp1 <- as.data.frame(do.call(cbind, sob_samp1))
 sob_samp2 <- as.data.frame(do.call(cbind, sob_samp2))
 
-# sample TCRE
-# we fit a log-normal distribution to the 90% range from Gillet et al (2013)
-low <- 0.7
-high <- 2
-tcre_mean <- mean(c(log(low), log(high)))
-tcre_sd <- (log(high) - log(low)) / (qnorm(0.95) - qnorm(0.05))
-bds[['TCRE']] <- c(0, 6)
-sob_samp1[, 'TCRE'] <- map_range(rlnorm(n_samp, meanlog=tcre_mean, sdlog=tcre_sd), bdin=c(0, 6), bdout=c(0, 1))
-sob_samp2[, 'TCRE'] <- map_range(rlnorm(n_samp, meanlog=tcre_mean, sdlog=tcre_sd), bdin=c(0, 6), bdout=c(0, 1))
-parnames['TCRE'] <- 'TCRE'
-
-
-## calculate temperature anomalies using 1861-1880 baseline from HadCRUT4
-# read in HadCRUT4 data file
-temp_dat <- read_table('data/HadCRUT4-gl.dat', col_names=FALSE)
-temp_dat <- temp_dat[seq(1, nrow(temp_dat), by=2), c(1, ncol(temp_dat))]
-colnames(temp_dat) <- c('year', 'temp')
-# compute 1861-1880 mean
-temp_mean <- mean(temp_dat[temp_dat$year %in% 1861:1880,]$temp)
-# compute anomaly as of 2014
-temp_base <- temp_dat[temp_dat$year == 2014,]$temp - temp_mean
-
 ## run the Sobol analysis
-sens_out <- sobolSalt(model=temp_eval_par, X1=sob_samp1, X2=sob_samp2, scheme='B', nboot=n_boot, parnames=parnames, par_bds=bds, baseline=temp_base)
+sens_out <- sobolSalt(model=func_eval_par, X1=sob_samp1, X2=sob_samp2, scheme='B', nboot=n_boot, parnames=parnames, par_bds=bds)
 
 # write output file as in Tony and Perry's analysis codes
 sobolout1 <- paste0('output/Sobol-1-tot_temp.txt')

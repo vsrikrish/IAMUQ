@@ -47,8 +47,8 @@ sample_value <- function(n, parvals, bw, bds) {
 }
 
 # evaluate function in parallel
-temp_eval_par <- function(vals, parnames, par_bds, baseline) {
-  export_names <- c('parnames', 'temp_2100')
+func_eval_par <- function(vals, parnames, par_bds) {
+  export_names <- c('parnames')
   # map samples from [0, 1] to parameter values
   samps <- vapply(parnames, function(p) map_range(vals[, match(p, parnames)], bdin=c(0, 1), bdout=par_bds[[p]]), numeric(nrow(vals)))
   
@@ -57,7 +57,7 @@ temp_eval_par <- function(vals, parnames, par_bds, baseline) {
   clusterExport(cl, export_names) # export function to evaluate
     
   ## apply function to samples
-  out <- parApply(cl, samps, 1, temp_wrap, parnames=parnames, baseline=baseline)
+  out <- parApply(cl, samps, 1, func_wrap, parnames=parnames)
   
   stopCluster(cl) # stop cluster
   
@@ -65,15 +65,9 @@ temp_eval_par <- function(vals, parnames, par_bds, baseline) {
 }
 
 # wrapper for function evaluation
-temp_wrap <- function(pars, parnames, baseline) {
+func_wrap <- function(pars, parnames) {
   # simulate model
   model_out <- run_model(pars, parnames, start=1700, end=2100)
   # call summary function and return
-  do.call(temp_2100, list(emis=model_out$C, yrs=model_out$year, tcre=pars[match('TCRE', parnames)], baseline=baseline))
-}
-
-# compute temperature based on cumulative emissions
-temp_2100 <- function(emis, yrs, tcre, start=2014, end=2100, baseline=0.92) {
-  cum_emis <- cum_co2(emis, yrs, start=start, end=end)
-  cum_emis * tcre / 1000 + baseline
+  do.call(cum_co2, list(emis=model_out$C, yrs=model_out$year, start=2015, end=2100))
 }
