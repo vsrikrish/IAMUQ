@@ -30,7 +30,7 @@
 
 rm(list = ls())
 
-n_params <- 18 # set number of parameters
+n_params <- 17 # set number of parameters
 # set files with sobol indices
 sobol_file_1 <- paste0('output/Sobol-1-tot_temp.txt')
 sobol_file_2 <- paste0('output/Sobol-2-tot_temp.txt')
@@ -111,8 +111,7 @@ s2_sig1 <- stat_sig_s2(s2
 # Defining lists of the variables for each group
 name_list <- list('Population \n Growth' = parnames[1:4],
                   'Economic \n Output' = parnames[5:11],
-                  'Emissions & \n Technology' = parnames[12:17],
-                  'Earth \n Science' = parnames[18]
+                  'Emissions & \n Technology' = parnames[12:17]
                  )
                  
 # add Parameter symbols to plot
@@ -123,8 +122,7 @@ name_symbols <- c(expression(psi[1]), expression(psi[2]),
                   expression(pi), expression(A[0]),
                   expression(rho[2]), expression(rho[3]),
                   expression(tau[2]), expression(tau[3]),
-                  expression(tau[4]), expression(kappa),
-                  'TCRE'
+                  expression(tau[4]), expression(kappa)
                  )
                  
 source('R/colorBlindPalette.R')
@@ -132,8 +130,7 @@ source('R/colorBlindPalette.R')
 # defining list of colors for each group
 col_list <- list("Population \n Growth"     = rgb(mycol[11,1],mycol[11,2],mycol[11,3])
                   ,'Economic \n Output' = rgb(mycol[7,1],mycol[7,2],mycol[7,3]),
-                   'Emissions & \n Technology'   = rgb(mycol[1,1],mycol[1,2],mycol[1,3]),
-                   'Earth \n Science' = rgb(mycol[13, 1], mycol[13,2], mycol[13,3])
+                   'Emissions & \n Technology'   = rgb(mycol[1,1],mycol[1,2],mycol[1,3])
                   )
                   
 # using function to assign variables and colors based on group
@@ -144,7 +141,7 @@ s1st1 <- gp_name_col(name_list
 s1st1$symbols <- name_symbols
 
 # set filename for plot
-plot_file <- paste0('figures/sobol_temp')
+plot_file <- paste0('figures/sobol_cum_co2')
 
 plotRadCon(df=s1st1
            ,s2=s2
@@ -188,6 +185,12 @@ print('********************************')
 s2.sort <- s2_table[rev(order(s2_table[,3])),]
 itmp <- which(s2.sort[,'S2'] > sig.cutoff & s2.sort[,'S2_conf_low']*s2.sort[,'S2_conf_high'] > 0)
 s2.sort <- s2.sort[itmp,]
+print('********************************')
+print('significant second-order indices:')
+print(s2.sort)
+print('********************************')
+
+<- s2.sort[itmp,]
 print('********************************')
 print('significant second-order indices:')
 print(s2.sort)
