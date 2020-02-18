@@ -3,7 +3,7 @@ library(GGally)
 
 nsamp <- 1e5 # set desired number of samples
 
-mcmc_out <- readRDS('output/mcmc_base.rds')
+mcmc_out <- readRDS('output/mcmc_base-gwp-co2.rds')
 mcmc_length <- nrow(mcmc_out[[1]]$samples)
 burnin <- 5e5
 post <- do.call(rbind, lapply(mcmc_out[1:4], function(l) l$samples[(burnin+1):mcmc_length,]))
@@ -70,10 +70,10 @@ p <- ggpairs(post_samps,
       switch='y') +
      theme(axis.text.x = element_text(angle=90, hjust = 1))
 
-pdf('figures/FigS3-pairs.pdf', height=25, width=25)
+pdf('figures/pairs.pdf', height=7, width=7)
 p
 dev.off()
 
-png('figures/FigS3-pairs.png', height=25, width=25, units='in', res=600)
+png('figures/pairs.png', height=7, width=7, units='in', res=300)
 p
 dev.off()
