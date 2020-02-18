@@ -5,7 +5,7 @@ source('R/calib_priors.R')
 
 nsamp <- 1e5 # set desired number of samples
 
-mcmc_out <- readRDS('output/mcmc_base.rds')
+mcmc_out <- readRDS('output/mcmc_base-gwp-co2.rds')
 mcmc_length <- nrow(mcmc_out[[1]]$samples)
 burnin <- 5e5
 post <- do.call(rbind, lapply(mcmc_out[1:4], function(l) l$samples[(burnin+1):mcmc_length,]))
@@ -17,7 +17,7 @@ post_samps <- as.data.frame(samps)
 
 # set up prior list
 prior_df <- set_prior_params(parnames)
-priors <- create_prior_list(prior_df)
+priors <- IAMUQ::create_prior_list(prior_df)
 # sample from priors
 pri_samps <- as.data.frame(do.call(cbind, lapply(priors,
     function(p) do.call(match.fun(p[['rand.fun']]),
@@ -75,10 +75,10 @@ levels(all_melt$Variable) <- var_to_sym[levels(all_melt$Variable)]
 
 p <- ggplot(all_melt) + stat_density(aes(x=value, color=Distribution), geom='line', position='identity') + facet_wrap(vars(Variable), scales='free', labeller=label_parsed, ncol=4) + scale_color_brewer(palette='Dark2') + theme(legend.position='bottom') + scale_y_continuous('Density') + scale_x_continuous('Parameter Value')
 
-pdf('figures/FigS2-dist.pdf', height=8, width=8)
+pdf('figures/prior_post-dist.pdf', height=7, width=7)
 p
 dev.off()
 
-png('figures/FigS2-dist.png', height=8, width=8, res=600, units='in')
+png('figures/prior_post-dist.png', height=7, width=7, res=300, units='in')
 p
 dev.off()
