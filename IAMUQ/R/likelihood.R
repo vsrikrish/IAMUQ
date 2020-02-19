@@ -41,8 +41,8 @@ log_exp_gwp <- function(model_out) {
 #' @return Log-density value of the model average GWP per-capita growth rate.
 log_exp_co2 <- function(model_out) {
   # set parameter values for expert assessment distribution
-  mu=18.5 # mean
-  sigma=9.63 # sd on percentage scale
+  mu=23.1 # mean
+  sigma=9 # sd on percentage scale
 
   # get CO2 emissions level in 2100 from model output
   co2_2100 <- model_out$C[model_out$year == 2100]
