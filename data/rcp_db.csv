@@ -1,5 +1,0 @@
-Region,Scenario,Variable,Unit,2000,2005,2010,2020,2030,2040,2050,2060,2070,2080,2090,2100,Marker
-World,RCP 6.0,CO2 emissions - Fossil fuels and Industry,PgC/yr,6.735,7.971,8.512,8.950,9.995,11.554,13.044,14.824,16.506,17.281,14.313,13.753,Marker
-World,RCP 4.5,CO2 emissions - Fossil fuels and Industry,PgC/yr,6.735,7.971,8.607,9.872,10.953,11.338,11.031,9.401,7.118,4.182,4.193,4.203,Marker
-World,RCP 2.6,CO2 emissions - Fossil fuels and Industry,PgC/yr,6.735,7.971,8.821,9.288,7.157,4.535,3.186,1.419,0.116,-0.433,-0.870,-0.931,Marker
-World,RCP 8.5,CO2 emissions - Fossil fuels and Industry,PgC/yr,6.735,7.971,8.926,11.538,13.839,16.787,20.205,23.596,25.962,27.406,28.337,28.740,Marker
