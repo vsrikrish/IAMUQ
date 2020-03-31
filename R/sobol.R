@@ -34,8 +34,8 @@ sob_samp2 <- as.data.frame(do.call(cbind, sob_samp2))
 sens_out <- sobolSalt(model=func_eval_par, X1=sob_samp1, X2=sob_samp2, scheme='B', nboot=n_boot, parnames=parnames, par_bds=bds)
 
 # write output file as in Tony and Perry's analysis codes
-sobolout1 <- paste0('output/Sobol-1-tot_temp.txt')
-sobolout2 <- paste0('output/Sobol-2-tot_temp.txt')
+sobolout1 <- paste0('output/Sobol-1-cum_emissions.txt')
+sobolout2 <- paste0('output/Sobol-2-cum_emissions.txt')
 
 headers.1st.tot <- matrix(c('Parameter', 'S1', 'S1_conf_low', 'S1_conf_high',
                             'ST', 'ST_conf_low', 'ST_conf_high'), nrow=1)
