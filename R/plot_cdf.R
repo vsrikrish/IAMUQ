@@ -93,15 +93,14 @@ p <- ggplot() +
   scale_y_continuous('Cumulative Probability', expand=c(0, 0),
                      labels=function(x) ifelse(x==as.integer(x), as.character(round(x)), as.character(round(x, 2)))) + 
   scale_color_manual('Model\nScenario', values=cbbpsqualitative) + 
-  theme_classic(base_size=8) +
+  theme_classic(base_size=5) +
   theme(legend.position='bottom', legend.box='vertical', legend.box.just = 'left', 
         legend.spacing = unit(-0.2, 'cm'), plot.margin=unit(c(4, 1, 0, 1), 'lines'), 
-        legend.title=element_text(size=8), legend.text = element_text(size=7),
-        axis.text=element_text(size=7)) + 
+        legend.text = element_text(size=5), axis.text=element_text(size=5)) + 
   guides(color = guide_legend(order=1, nrow=2, byrow=FALSE, override_aes=list(size=5)))
 
 for (i in 1:nrow(ssp_cum_melt)) {
-  p <- p + annotation_custom(grob=grid::textGrob(label=ssp_cum_melt[i, 'Scenario'], hjust=0.5 + ssp_hjust[i], vjust=ssp_vjust[i], gp=gpar(fontsize=7)), 
+  p <- p + annotation_custom(grob=grid::textGrob(label=ssp_cum_melt[i, 'Scenario'], hjust=0.5 + ssp_hjust[i], vjust=ssp_vjust[i], gp=gpar(fontsize=5)), 
                              xmin=ssp_cum_melt[i, 'value'], xmax=ssp_cum_melt[i, 'value'], ymin=1.1, ymax=1.1)
   if (i == 4) {
     p <- p + annotation_custom(grob=grid::linesGrob(arrow=grid::arrow(type='closed', ends='first', length=unit(1.5, 'mm')), gp=gpar(fill='black')),
@@ -120,8 +119,8 @@ for (i in 1:nrow(ssp_cum_melt)) {
 
 p <- p + annotation_custom(grob=grid::linesGrob(arrow=grid::arrow(type='open', ends='first', length=unit(3, 'mm')), gp=gpar(col='blue')),
                            xmin=500, xmax=2000, ymin=1.22, ymax=1.22)
-p <- p + annotation_custom(grob=grid::textGrob(label=expression('Increasing Probability of Achieving 2'*degree*C~'Target'), gp=gpar(col='blue', fontsize=8)),
-                           xmin=1000, xmax=1500, ymin=1.3, ymax=1.3)
+p <- p + annotation_custom(grob=grid::textGrob(label=expression('Increasing Probability of Achieving 2'*degree*C~'Target'), gp=gpar(col='blue', fontsize=5)),
+                           xmin=1000, xmax=1500, ymin=1.26, ymax=1.26)
 
 
 p <- p + coord_cartesian(clip = "off")

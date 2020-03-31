@@ -78,12 +78,12 @@ for (i in 1:length(appendices)) {
     scale_linetype_discrete('Marker') + 
     scale_fill_manual('Model Scenario', values=cbbpsqualitative) + 
     scale_x_continuous('Year', limits=c(2000, 2100), breaks=seq(2000, 2100, by=20), expand=c(0, 0)) + 
-    theme_classic(base_size=8) +
-    theme(plot.margin=unit(c(0.6, 0, 0.5, 0.08), 'in'), legend.position='bottom', 
-          legend.box='vertical', legend.box.just = 'left', legend.spacing = unit(-0.2, 'cm'),
-          legend.title=element_text(size=8), legend.text=element_text(size=7),
-          axis.text=element_text(size=7)) + 
-    guides(color = guide_legend(order=1, nrow=4, byrow=FALSE, override_aes=list(size=5)), 
+    theme_classic(base_size=5) +
+    theme(plot.margin=unit(c(7, -0.35, 5, 2), 'mm'), legend.position='bottom', 
+          legend.box='vertical', legend.box.just = 'left', legend.spacing = unit(0, 'cm'),
+          legend.text=element_text(size=5), axis.text=element_text(size=5),
+          legend.key.size=unit(0.5, 'cm')) + 
+    guides(color = guide_legend(order=1, ncol=3, byrow=FALSE, override_aes=list(size=5)), 
            linetype = guide_legend(order=2), fill = guide_legend(order=3, nrow=2, byrow=FALSE)) +
     labs(tag=letters[i])
   
@@ -95,9 +95,9 @@ for (i in 1:length(appendices)) {
     coord_flip() + 
     scale_fill_manual('', values=cbbpsqualitative) + 
     scale_color_manual('', values=cbbpsqualitative) + 
-    theme_classic(base_size=8) +
+    theme_classic(base_size=5) +
     theme(axis.text.y=element_blank(), axis.title.y=element_blank(), axis.ticks.y=element_blank(), 
-          panel.border=element_blank(), plot.margin=unit(c(0.605, 0.2, 0.745, -0.02), 'in'), 
+          panel.border=element_blank(), plot.margin=unit(c(7, 1, 9.1, -0.05), 'mm'), 
           axis.title.x=element_blank(), axis.ticks.x=element_blank(), axis.text.x=element_blank(), 
           axis.line.x=element_blank(), legend.position='none')
   

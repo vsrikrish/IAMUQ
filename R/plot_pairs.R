@@ -70,10 +70,10 @@ p <- ggpairs(post_samps,
       switch='y') +
      theme(axis.text.x = element_text(angle=90, hjust = 1))
 
-pdf('figures/pairs.pdf', height=7, width=7)
+pdf('figures/pairs.pdf', height=28, width=28)
 p
 dev.off()
 
-png('figures/pairs.png', height=7, width=7, units='in', res=300)
+png('figures/pairs.png', height=28, width=28, units='in', res=300)
 p
 dev.off()
