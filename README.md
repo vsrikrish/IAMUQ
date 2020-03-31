@@ -47,6 +47,39 @@ To install the `IAMUQ` package, use the following commands from the local reposi
 1. `R CMD build IAMUQ`
 2. `R CMD INSTALL IAMUQ_1.0.tar.gz`
 
+## Workflow
+
+The calibration and analysis codes are designed to work with a PBS job submission queue on a high-performance computing system and should be easily modifiable to work with a different submission system. To run individual cases without calibration, the maximum a posteriori (MAP) and Markov chain Monte Carlo (MCMC) can be used by passing options through the command line (see R/map_scenarios.R and R/mcmc_scenarios.R).
+
+### Model calibration
+
+The calibrations in the manuscript can be reproduced using scenarios and priors set up in the repository code (in R/map_scenarios.R, R/mcmc_scenarios.R, and R/calib_priors.R). The calibrations under alternate priors are set up in R/map_sensitivity.R and R/mcmc_sensitivity.R. Other calibration scenarios can be set up using similar methods for specifying priors, data, and expert assessment inclusion.
+
+By default, the MAP and MCMC analyses are run using multiple processors. The IAMUQ package contains the `IAMUQ::find_map()` and `IAMUQ::run_mcmc()` functions, which can be run in serial instead (see documentation).
+
+### Projections
+
+To generate projections based on a calibration, use the `IAMUQ::cond_sim_model()` function, as in R/conditional_simulation.R.
+
+### Sobol' sensitivity analysis
+
+The global sensitivity analysis is conducted using R/sobol.R. This code writes out text files with the parameter sensitivities and confidence intervals.
+
+### Plotting
+
+The code to generate the plots in Srikrishnan, Guan, Tol, and Keller (2020) is available in the repository:
+
+1. Figure 1: R/plot_projections_CMIP6.R
+2. Figure 2: R/plot_cdf.R
+3. Figure 3: R/sobol_plot.R
+4. Extended Data Figure 1: R/plot_proj_sensitivity.R
+5. Extended Data Figure 2: R/plot_hindcast_length.R
+6. Extended Data Figure 3: R/plot_posterior_prior.R
+7. Extended Data Figure 4: R/plot_post_scenario.R
+8. Extended Data Figure 5: R/plot_estimate_inversion.R (this figure uses only the base model scenario, though the script will generate figures for the others as well).
+9. Extended Data Figure 6: R/plot_projections_CMIP6_all.R
+10. Extended Data Figure 7: R/plot_growth_rates.R
+
 ## Contact (corresponding author)
 Vivek Srikrishnan
 Email: <vivek@psu.edu>
