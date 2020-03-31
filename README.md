@@ -47,6 +47,12 @@ To install the `IAMUQ` package, use the following commands from the local reposi
 1. `R CMD build IAMUQ`
 2. `R CMD INSTALL IAMUQ_1.0.tar.gz`
 
+## Data
+
+The original Maddison Project and Boden et al (2017) data is available in IAMUQ/inst/extdata. Code to process this data is provided in IAMUQ/data-raw/read_data.R. This code produces IAMUQ/data/iamdata.rda, which is loaded by the `IAMUQ` package.
+
+CMIP6 Representative Concentration Pathway - Shared Socioeconomic Pathway scenario data was downloaded from the [SSP database](https://tntcat.iiasa.ac.at/SspDb/dsd). The resulting data is available in data/cmip6_co2.xlsx.
+
 ## Workflow
 
 The calibration and analysis codes are designed to work with a PBS job submission queue on a high-performance computing system and should be easily modifiable to work with a different submission system. To run individual cases without calibration, the maximum a posteriori (MAP) and Markov chain Monte Carlo (MCMC) can be used by passing options through the command line (see R/map_scenarios.R and R/mcmc_scenarios.R).
