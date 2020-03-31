@@ -86,6 +86,8 @@ The code to generate the plots in Srikrishnan, Guan, Tol, and Keller (2020) is a
 9. Extended Data Figure 6: R/plot_projections_CMIP6_all.R
 10. Extended Data Figure 7: R/plot_growth_rates.R
 
+Code is also provided for a pairs plot (R/plot_pairs.R). Due to figure size constraints and the number of parameters, we did not include this plot in the manuscript.
+
 ## Contact (corresponding author)
 Vivek Srikrishnan
 Email: <vivek@psu.edu>
