@@ -42,7 +42,7 @@ The other R codes require the following packages:
 
 ## Installation
 
-To install the `IAMUQ` package, use the following commands from the local repository root directory:
+To install the `IAMUQ` package, first clone the repository. Then, use the following commands from the local repository root directory:
 
 1. `R CMD build IAMUQ`
 2. `R CMD INSTALL IAMUQ_1.0.tar.gz`
