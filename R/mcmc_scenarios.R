@@ -15,7 +15,7 @@ if (aid == '') {
     exp_assess <- args[2]
   }
 } else {
-  scenarios <- c('iid', 'base', 'short', 'low', 'high', 'alt_zc')
+  scenarios <- c('iid', 'base', 'short', 'low', 'high', 'del_zc')
   exp_assess <- c('none', 'gwp', 'co2', 'both')
   cases <- expand.grid(scenarios=scenarios, exp=exp_assess)
   id <- as.numeric(aid)
@@ -62,7 +62,7 @@ if (scenario == 'base') {
   ff_thresh <- 10000 # fossil fuel constraint in GtC
   ff_const_yrs <- 2015:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
-} else if (scenario == 'alt_zc') {
+} else if (scenario == 'del_zc') {
   data_yrs <- 1820:2014 # years for observational constraints
   ff_thresh <- 6000 # fossil fuel constraint in GtC
   ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
@@ -80,10 +80,10 @@ if (residtype == 'ar') {
 ## set up prior dataframe
 prior_df <- set_prior_params(parnames)
 # if scenario involves changing prior distributions, do so here
-if (scenario == 'alt_zc') {
+if (scenario == 'del_zc') {
   # modify zero-carbon half-saturation year (tau_4) prior distribution
   zc_idx <- match('tau4', prior_df[, 'name'])
-  prior_df[zc_idx, 'type'] <- 'normal'
+  prior_df[zc_idx, 'type'] <- 'truncnorm'
   prior_df[zc_idx, 'lower'] <- 2100
   prior_df[zc_idx, 'upper'] <- 2400
 }

@@ -13,7 +13,7 @@ if (aid == '') {
     scenario <- args[1]
   }
 } else {
-  scenarios <- c('alt_s', 'alt_lambda', 'alt_pi', 'alt_As', 'alt_multi')
+  scenarios <- c('alt_s', 'alt_lambda', 'alt_pi', 'alt_As', 'alt_multi', 'alt_zc')
   id <- as.numeric(aid)
   scenario <- scenarios[id]
 }
@@ -59,6 +59,9 @@ if (scenario == 'alt_s') {
   prior_df[idx, 'type'] <- 'log-normal'
   idx <- match('As', prior_df[, 'name'])
   prior_df[idx, 'type'] <- 'normal'
+} else if (scenario == 'alt_zc') {
+  idx <- match('tau4', prior_df[, 'name'])
+  prior_df[idx, 'upper'] <- 2250
 }
 
 ## find MAP estimate

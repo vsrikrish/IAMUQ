@@ -14,7 +14,7 @@ if (aid == '') {
     exp_assess <- args[2]
   }
 } else {
-  scenarios <- c('iid', 'base', 'short', 'low', 'high', 'alt_zc')
+  scenarios <- c('iid', 'base', 'short', 'low', 'high', 'del_zc')
   exp_assess <- c('none', 'gwp', 'co2', 'both')
   cases <- expand.grid(scenarios=scenarios, exp=exp_assess)
   id <- as.numeric(aid)
@@ -61,7 +61,7 @@ if (scenario == 'base') {
   ff_thresh <- 10000 # fossil fuel constraint in GtC
   ff_const_yrs <- 2015:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
-} else if (scenario == 'alt_zc') {
+} else if (scenario == 'del_zc') {
   data_yrs <- 1820:2014 # years for observational constraints
   ff_thresh <- 6000 # fossil fuel constraint in GtC
   ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
@@ -79,10 +79,10 @@ if (residtype == 'ar') {
 ## set up prior dataframe
 prior_df <- set_prior_params(parnames)
 # if scenario involves changing prior distributions, do so here
-if (scenario == 'alt_zc') {
+if (scenario == 'del_zc') {
   # modify zero-carbon half-saturation year (tau_4) prior distribution
   zc_idx <- match('tau4', prior_df[, 'name'])
-  prior_df[zc_idx, 'type'] <- 'normal'
+  prior_df[zc_idx, 'type'] <- 'truncnorm'
   prior_df[zc_idx, 'lower'] <- 2100
   prior_df[zc_idx, 'upper'] <- 2400
 }
@@ -94,17 +94,6 @@ if (residtype == 'ar') {
   parnames <- c('psi1', 'psi2', 'psi3', 'P0', 'lambda', 's', 'delta', 'alpha', 'As', 'pi', 'A0', 'rho2', 'rho3', 'tau2', 'tau3', 'tau4', 'kappa', 'sigma_pop', 'sigma_prod', 'sigma_emis')
 } else if (residtype == 'var') {
   parnames <- c('psi1', 'psi2', 'psi3', 'P0', 'lambda', 's', 'delta', 'alpha', 'As', 'pi', 'A0', 'rho2', 'rho3', 'tau2', 'tau3', 'tau4', 'kappa', 'sigma_pop', 'sigma_prod', 'sigma_emis', 'a_11', 'a_22', 'a_33', 'a_21', 'a_31', 'a_12', 'a_23', 'a_13', 'a_32', 'eps_pop', 'eps_prod', 'eps_emis')
-}
-
-## set up prior dataframe
-prior_df <- set_prior_params(parnames)
-# if scenario involves changing prior distributions, do so here
-if (scenario == 'alt_zc') {
-  # modify zero-carbon half-saturation year (tau_4) prior distribution
-  zc_idx <- match('tau4', prior_df[, 'name'])
-  prior_df[zc_idx, 'type'] <- 'normal'
-  prior_df[zc_idx, 'lower'] <- 2100
-  prior_df[zc_idx, 'upper'] <- 2400
 }
 
 ## find MAP estimate
