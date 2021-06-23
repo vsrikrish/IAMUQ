@@ -9,7 +9,8 @@ Description: More details about what the package does. See
         <http://cran.r-project.org/doc/manuals/r-release/R-exts.html#The-DESCRIPTION-file>
         for details on how to write this part.
 License: GPL (>= 2)
-Depends: R (>= 2.10.0)
+Depends: R (>= 2.10.0),
+	 truncnorm
 Imports: Rcpp (>= 1.0.0),
 	 mvtnorm,
 	 adaptMCMC,

@@ -118,10 +118,19 @@ log_pri <- function(pars, parnames, priors) {
   # this function evaluates the log-prior density for a given parameter
   log_dens <- function(name) {
     val <- pars[match(name, parnames)]
-    do.call(match.fun(priors[[name]][['dens.fun']]),
-            c(list(x=val, log=TRUE),
-              priors[[name]][-which(names(priors[[name]]) %in% c('type', 'dens.fun', 'quant.fun', 'rand.fun'))])
-    )
+    # if we use a truncated normal prior, need to manually take the log
+    if (priors[[name]][['type']] == 'truncnorm') {
+      dens <- do.call(match.fun(priors[[name]][['dens.fun']]),
+                      c(list(x=val),
+                      priors[[name]][-which(names(priors[[name]]) %in% c('type', 'dens.fun', 'quant.fun', 'rand.fun'))])
+              )
+      log(dens)
+    } else {
+      do.call(match.fun(priors[[name]][['dens.fun']]),
+              c(list(x=val, log=TRUE),
+                priors[[name]][-which(names(priors[[name]]) %in% c('type', 'dens.fun', 'quant.fun', 'rand.fun'))])
+             )
+    }
   }
   # evaluate log-prior densities for each parameter
   lp <- vapply(parnames, log_dens, numeric(1))
@@ -493,6 +502,7 @@ log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
 #'  priors, the data and the fossil fuel constraint value.
 #' @export
 log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
+  
   # check for parameter constraints and return -Inf if not satisfied
   if (!check_param_constraints(pars, parnames))  {
     return(-Inf)

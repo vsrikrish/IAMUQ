@@ -56,6 +56,8 @@ run_mcmc <- function(post, parnames, residtype, prior_df, data_yrs, init, n_iter
       stepsize[match(name, parnames)] <- 0.1*priors[[name]][['sd']]
     } else if (priors[[name]][['type']] == 'log-normal') {
       stepsize[match(name, parnames)] <- 0.1*sqrt((exp(priors[[name]][['sdlog']]^2)-1)*exp(2*priors[[name]][['meanlog']]+priors[[name]][['sdlog']]^2))
+    } else if (priors[[name]][['type']] == 'truncnorm') {
+      stepsize[match(name, parnames)] <- 0.1*priors[[name]][['sd']]
     }
   }
 
@@ -66,9 +68,9 @@ run_mcmc <- function(post, parnames, residtype, prior_df, data_yrs, init, n_iter
   # otherwise just run chains
   if (parallel) {
     ncores <- parallel::detectCores()
-    mcmc_out <- MCMC.parallel(post, n_iter, init=init, n.chain=n_chain, n.cpu=ncores, acc.rate=rate_accept, n.start = adapt_start, gamma=0.51, scale=stepsize, adapt=5e5, list=TRUE, packages=c('IAMUQ'), parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', residtype), ...)
+    mcmc_out <- MCMC.parallel(post, n_iter, init=init, n.chain=n_chain, n.cpu=ncores, acc.rate=rate_accept, n.start = adapt_start, gamma=0.51, scale=stepsize, adapt=5e5, list=TRUE, packages=c('IAMUQ', 'truncnorm'), parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', residtype), ...)
   } else {
-      mcmc_out <- MCMC(post, n_iter, init=init, n.chain=n_chain, acc.rate=rate_accept, n.start = adapt_start, gamma=0.51, scale=stepsize, adapt=5e5, list=TRUE, parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', residtype), ...)
+      mcmc_out <- MCMC(post, n_iter, init=init, acc.rate=rate_accept, n.start = adapt_start, gamma=0.51, scale=stepsize, adapt=5e5, list=TRUE, parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', residtype), ...)
   }
 
   # return MCMC output

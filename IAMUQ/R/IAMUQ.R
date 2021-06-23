@@ -13,6 +13,7 @@
 #' @importFrom adaptMCMC MCMC.parallel
 #' @importFrom DEoptim DEoptim
 #' @importFrom magic adiag
+#' @importFrom truncnorm qtruncnorm dtruncnorm rtruncnorm
 #' @useDynLib IAMUQ, .registration = TRUE
 NULL
 
