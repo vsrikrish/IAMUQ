@@ -14,7 +14,7 @@ if (aid == '') {
     exp_assess <- args[2]
   }
 } else {
-  scenarios <- c('iid', 'base', 'short', 'low', 'high', 'alt_zc')
+  scenarios <- c('iid', 'base', 'short', 'low', 'high', 'del_zc')
   exp_assess <- c('none', 'gwp', 'co2', 'both')
   cases <- expand.grid(scenarios=scenarios, exp=exp_assess)
   id <- as.numeric(aid)
@@ -43,7 +43,7 @@ if (exp_co2) {
 }
 
 nsamp <- 1e5 # number of simulations
-yrs <- 2015:2100 # years which the conditional simulation should project
+yrs <- 2015:2200 # years which the conditional simulation should project
 
 # read in data
 dat <- lapply(iamdata, function(l) {l[l$year %in% 1820:2014,]})
