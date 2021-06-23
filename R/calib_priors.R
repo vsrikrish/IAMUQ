@@ -84,9 +84,9 @@ set_prior_params <- function(parnames) {
       prior_df[i, 'lower'] <- 1700
       prior_df[i, 'upper'] <- 2100
     } else if (name == 'tau4') {
-      prior_df[i, 'type'] <- 'uniform'
-      prior_df[i, 'lower'] <- 2020
-      prior_df[i, 'upper'] <- 2500
+      prior_df[i, 'type'] <- 'truncnorm'
+      prior_df[i, 'lower'] <- 2050
+      prior_df[i, 'upper'] <- 2150
     } else if (name == 'kappa') {
       prior_df[i, 'type'] <- 'uniform'
       prior_df[i, 'lower'] <- 0.005
