@@ -6,7 +6,7 @@ source('R/calib_priors.R')
 nsamp <- 1e5 # set desired number of samples
 
 scen_labels <- c('Standard', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Carbon')
-scenarios <- c('base', 'low', 'high', 'alt_zc')
+scenarios <- c('base', 'low', 'high', 'del_zc')
 
 post_samps <- vector('list', length(scenarios))
 names(post_samps) <- scen_labels

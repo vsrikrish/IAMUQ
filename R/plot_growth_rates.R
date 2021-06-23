@@ -67,7 +67,7 @@ marg_gwp <- ggplot(dat) + stat_density(aes(x=GWP), geom='line', color='blue') +
   theme(axis.text.y=element_blank(), axis.title.y=element_blank(), axis.ticks.y=element_blank(), 
         axis.title.x=element_blank(), axis.ticks.x=element_blank(), axis.text.x=element_blank(), 
         axis.line=element_blank(), legend.position='none',
-        plot.margin=unit(c(0, 0, 13, 0), 'mm'))
+        plot.margin=unit(c(0, 0, 23.5, 0), 'mm'))
 
 marg_ci <- ggplot(dat) + stat_density(aes(x=CI), geom='line', color='blue') +
   theme_classic(base_size=6) + 
@@ -75,40 +75,40 @@ marg_ci <- ggplot(dat) + stat_density(aes(x=CI), geom='line', color='blue') +
   theme(axis.text.y=element_blank(), axis.title.y=element_blank(), axis.ticks.y=element_blank(), 
         axis.title.x=element_blank(), axis.ticks.x=element_blank(), axis.text.x=element_blank(), 
         axis.line=element_blank(), legend.position='none',
-        plot.margin=unit(c(0, 0, 0, 4.5), 'mm'))
+        plot.margin=unit(c(0, 0, 0, 8.5), 'mm'))
 
 scatplot <- ggplot(dat[dat$CO2 < 3000,], aes(x=CI, y=GWP)) + 
   stat_summary_2d(aes(z=CO2), fun=mean, binwidth=0.075) +
   geom_contour(data=dc, aes(x=Var1, y=Var2, z=prob), breaks=prob, color='grey', alpha=0.8) +
-  geom_point(data=md, aes(x=Var1, y=Var2), color='grey', size=0.5) +
-  geom_text(data=md, aes(x=Var1, y=Var2+0.5), color='black', label='Posterior Mode', size=1.5) +
+  geom_point(data=md, aes(x=Var1, y=Var2), color='grey', size=2) +
+  geom_text(data=md, aes(x=Var1, y=Var2+0.5), color='black', label='Posterior Mode', size=3) +
   geom_segment(data=md, aes(x=Var1, xend=Var1, y=Var2+0.4, yend=Var2+0.1),
-               size=0.5, arrow=arrow(length=unit(0.5, 'mm'), type='closed'), 
+               size=1, arrow=arrow(length=unit(0.5, 'mm'), type='closed'), 
                color='black', arrow.fill='black') +
   geom_abline(slope=1, intercept=0, linetype='dotted') +
-  geom_point(data=ssp_dat, aes(x=CI, y=GWP), color='black', size=0.5) +
-  geom_text(data=ssp_dat, aes(x=hpos, y=vpos, label=SSP), size=1.5) +
+  geom_point(data=ssp_dat, aes(x=CI, y=GWP), color='black', size=2) +
+  geom_text(data=ssp_dat, aes(x=hpos, y=vpos, label=SSP), size=3) +
   geom_segment(data=ssp_dat, aes(x=hpos, xend=CI+c(0.05, 0, 0, 0), y=arrstart, yend=arrend),
-               size=0.5, arrow=arrow(length=unit(0.5, 'mm'), type='closed')) +
-  theme_classic(base_size=5) +
+               size=1, arrow=arrow(length=unit(0.5, 'mm'), type='closed')) +
+  theme_classic(base_size=10) +
   scale_x_continuous('Rate of Carbon Intensity Decrease 2018-2100 (%)', limits=c(-1.5, 5.5), expand=c(0, 0)) +
   scale_y_continuous('Rate of Per-Capita GWP Growth 2018-2100 (%)', limits=c(-1.5, 5.5), expand=c(0, 0)) +
   scale_fill_gradientn(expression('Cumulative'~CO[2]~'Emissions 2018-2100 (GtC)'), 
                        colors=co2col) +
-  theme(legend.position='bottom', axis.text=element_text(size=5),
-        legend.text=element_text(size=5), legend.key.height=unit(2, 'mm'),
+  theme(legend.position='bottom', 
+        legend.key.height=unit(2, 'mm'),
         legend.box='vertical', legend.box.just='left') +
-  annotate('text', x=0, y=4.2, color='orangered4', size=2, label='Runaway Emissions') +
-  annotate('text', x=4.75, y=3.25, color='green4', size=2, label='Approximate\nStabilization') 
+  annotate('text', x=0, y=4.2, color='orangered4', size=3, label='Runaway Emissions') +
+  annotate('text', x=4.75, y=3.25, color='green4', size=3, label='Approximate\nStabilization') 
 
 
 fig <- arrangeGrob(marg_ci, empty, scatplot, marg_gwp, nrow=2, ncol=2,
                    widths=c(8, 1), heights=c(1, 8))
 
-png('figures/growth-scatter.png', height=89, width=89, units='mm', res=300)
+png('figures/growth-scatter.png', height=120, width=120, units='mm', res=300)
 grid.draw(fig)
 dev.off()
 
-pdf('figures/growth-scatter.pdf', height=3.5, width=3.5)
+pdf('figures/growth-scatter.pdf', height=4.7, width=4.7)
 grid.draw(fig)
 dev.off()

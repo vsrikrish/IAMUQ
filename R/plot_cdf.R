@@ -29,7 +29,7 @@ ssp_melt[, 'value'] <- ssp_melt[, 'value'] / (3.67 * 1000)
 ssp_melt <- ssp_melt[ssp_melt$Year == 2100, ]
 
 
-scenarios <- c('base', 'low', 'high', 'alt_zc')
+scenarios <- c('base', 'low', 'high', 'del_zc')
 scen_labels <- c('Standard', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Carbon')
 
 get_emissions <- function(sim_out) {
@@ -82,8 +82,8 @@ tol9qualitative=c("#88CCEE", "#332288", "#117733", "#44AA99", "#AA4499",  "#CC66
 
 budget <- 1500 / 3.67
 
-ssp_vjust <- c(-1, 1, 1, 1, -1, -1, 0)  
-ssp_hjust <- c(0, -0.5, -0.5, 0.25, 0, 0, 0)
+ssp_vjust <- c(-1, 1, 1, 1, -1, -1.25, 0)  
+ssp_hjust <- c(0, -0.45, -0.5, 0.25, 0, -0.4, 0)
 
 p <- ggplot() + 
   geom_rect(data=data.frame(xmin=0, xmax=budget, ymin=0, ymax=1), aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), fill='darkgreen', alpha=0.2) +
@@ -93,14 +93,15 @@ p <- ggplot() +
   scale_y_continuous('Cumulative Probability', expand=c(0, 0),
                      labels=function(x) ifelse(x==as.integer(x), as.character(round(x)), as.character(round(x, 2)))) + 
   scale_color_manual('Model\nScenario', values=cbbpsqualitative) + 
-  theme_classic(base_size=5) +
+  theme_classic(base_size=10) +
   theme(legend.position='bottom', legend.box='vertical', legend.box.just = 'left', 
-        legend.spacing = unit(-0.2, 'cm'), plot.margin=unit(c(4, 1, 0, 1), 'lines'), 
-        legend.text = element_text(size=5), axis.text=element_text(size=5)) + 
-  guides(color = guide_legend(order=1, nrow=2, byrow=FALSE, override_aes=list(size=5)))
+        legend.spacing = unit(-0.2, 'cm'), plot.margin=unit(c(4, 1, 0, 1), 'lines'),
+        legend.margin = margin(c(0, 0, 0, -15), 'lines')) +
+#        legend.text = element_text(size=5), axis.text=element_text(size=5)) + 
+  guides(color = guide_legend(order=1, nrow=2, byrow=FALSE))#, override_aes=list(size=5)))
 
 for (i in 1:nrow(ssp_cum_melt)) {
-  p <- p + annotation_custom(grob=grid::textGrob(label=ssp_cum_melt[i, 'Scenario'], hjust=0.5 + ssp_hjust[i], vjust=ssp_vjust[i], gp=gpar(fontsize=5)), 
+  p <- p + annotation_custom(grob=grid::textGrob(label=ssp_cum_melt[i, 'Scenario'], hjust=0.5 + ssp_hjust[i], vjust=ssp_vjust[i], gp=gpar(fontsize=8)), 
                              xmin=ssp_cum_melt[i, 'value'], xmax=ssp_cum_melt[i, 'value'], ymin=1.1, ymax=1.1)
   if (i == 4) {
     p <- p + annotation_custom(grob=grid::linesGrob(arrow=grid::arrow(type='closed', ends='first', length=unit(1.5, 'mm')), gp=gpar(fill='black')),
@@ -119,16 +120,16 @@ for (i in 1:nrow(ssp_cum_melt)) {
 
 p <- p + annotation_custom(grob=grid::linesGrob(arrow=grid::arrow(type='open', ends='first', length=unit(3, 'mm')), gp=gpar(col='blue')),
                            xmin=500, xmax=2000, ymin=1.22, ymax=1.22)
-p <- p + annotation_custom(grob=grid::textGrob(label=expression('Increasing Probability of Achieving 2'*degree*C~'Target'), gp=gpar(col='blue', fontsize=5)),
-                           xmin=1000, xmax=1500, ymin=1.26, ymax=1.26)
+p <- p + annotation_custom(grob=grid::textGrob(label=expression('Increasing Probability of Achieving 2'*degree*C~'Target'), gp=gpar(col='blue', fontsize=8)),
+                           xmin=1000, xmax=1500, ymin=1.27, ymax=1.27)
 
 
 p <- p + coord_cartesian(clip = "off")
   
 pdf('figures/co2_cum-cdf.pdf', width=3.5, height=4.1)
-p
+print(p)
 dev.off()
 
 png('figures/co2_cum-cdf.png', width=89, height=100, units='mm', res=600)
-p
+print(p)
 dev.off()

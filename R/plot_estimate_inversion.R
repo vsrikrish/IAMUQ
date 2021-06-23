@@ -8,7 +8,7 @@ nsamp <- 1e5 # set desired number of samples
 appendices <- c('', '-gwp', '-co2', '-gwp-co2')
 app_names <- c('None', 'Christensen et al (2018)', 'Ho et al (2019)', 'Both')
 
-scenarios <- c('base', 'low', 'high', 'alt_zc')
+scenarios <- c('base', 'low', 'high', 'del_zc')
 
 for (i in 1:length(scenarios)) {
   post_samps <- vector('list', length(appendices))

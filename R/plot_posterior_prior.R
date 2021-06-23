@@ -76,9 +76,9 @@ levels(all_melt$Variable) <- var_to_sym[levels(all_melt$Variable)]
 p <- ggplot(all_melt) + stat_density(aes(x=value, color=Distribution), geom='line', position='identity') + facet_wrap(vars(Variable), scales='free', labeller=label_parsed, ncol=4) + scale_color_brewer(palette='Dark2') + theme(legend.position='bottom') + scale_y_continuous('Density') + scale_x_continuous('Parameter Value')
 
 pdf('figures/prior_post-dist.pdf', height=7, width=7)
-p
+print(p)
 dev.off()
 
 png('figures/prior_post-dist.png', height=7, width=7, res=300, units='in')
-p
+print(p)
 dev.off()
