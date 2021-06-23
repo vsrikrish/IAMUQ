@@ -43,7 +43,7 @@ find_map <- function(post, parnames, residtype, prior_df, data_yrs, n_iter=5e3, 
   # if DEoptim is run in parallel, set up cluster and evaluate
   # otherwise just evaluate
   if (parallel) {
-    map_out <- DEoptim(post, lbound[match(parnames, all_parnames)], ubound[match(parnames, all_parnames)], control=list(parallelType=1, trace=trace, itermax=n_iter, NP=NP_scale*length(parnames)), parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', residtype), ...)
+    map_out <- DEoptim(post, lbound[match(parnames, all_parnames)], ubound[match(parnames, all_parnames)], control=list(parallelType=1, trace=trace, itermax=n_iter, NP=NP_scale*length(parnames), packages=c('truncnorm')), parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', residtype), ...)
   } else {
       map_out <- DEoptim(post, lbound[match(parnames, all_parnames)], ubound[match(parnames, all_parnames)], control=list(NP=NP_scale*length(parnames), itermax=n_iter, trace=trace), parnames=parnames, priors=priors, dat=dat, lik_fun=paste0('log_lik_', residtype), ...)
   }
