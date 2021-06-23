@@ -77,10 +77,15 @@ run_model <- function(pars, parnames, start=1700, end=2017, P0=NULL, Q0=NULL, C0
   
   # compute technology penetration values for technologies with non-zero emissions
   gamma <- cbind(
+    1 - (1 / (1 + exp(-kappa * (yr - tau[1])))),
     1 / (1 + exp(-kappa * (yr - tau[1]))) - 1 / (1 + exp(-kappa * (yr - tau[2]))),
-    1 / (1 + exp(-kappa * (yr - tau[2]))) - 1 / (1 + exp(-kappa * (yr - tau[3])))
+    1 / (1 + exp(-kappa * (yr - tau[2]))) - 1 / (1 + exp(-kappa * (yr - tau[3]))),
+    1 / (1 + exp(-kappa * (yr - tau[3])))
   )
   
-  model_run(yr, P0, psi, alpha, A0, As, s, lambda, delta, pi, kappa, gamma, rho, init)
+  model_out <- model_run(yr, P0, psi, alpha, A0, As, s, lambda, delta, pi, kappa, gamma[, 2:3], rho, init)
+
+  colnames(gamma) <- c('Frac_PreIndustrial', 'Frac_FossilHi', 'Frac_FossilLo', 'Frac_NonFossil')
   
+  data.frame(model_out, gamma)  
 }

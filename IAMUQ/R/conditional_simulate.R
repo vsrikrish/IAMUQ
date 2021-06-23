@@ -148,6 +148,6 @@ cond_sim_model <- function(pars, parnames, dat, projyrs=NULL, hoyrs=NULL) {
   # sample
   discrepancy <- matrix(mu_cs + L_cs %*% rnorm(N-length(datidx)), ncol=length(dat), byrow=TRUE) # compute random variates and re-form them into columns
   sim_out <- exp(log(model_out[model_out$year %in% c(hoyrs, projyrs), c('P', 'Q', 'C')]) + discrepancy) # add discrepancy terms to model output
-  data.frame(year=sort(c(hoyrs, projyrs)), sim_out)
+  data.frame(year=sort(c(hoyrs, projyrs)), sim_out, model_out[model_out$year %in% c(hoyrs, projyrs), c('Frac_PreIndustrial', 'Frac_FossilHi', 'Frac_FossilLo', 'Frac_NonFossil')])
   
 }

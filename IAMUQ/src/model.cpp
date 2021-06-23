@@ -102,7 +102,8 @@ DataFrame model_run(NumericVector yr,
                                      Named("A") = A,
                                      Named("K") = K,
                                      Named("L") = L,
-                                     Named("C") = C);
+                                     Named("C") = C
+                                    );
   
   return mout;
 }
