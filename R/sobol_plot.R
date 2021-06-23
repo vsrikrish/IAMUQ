@@ -32,8 +32,8 @@ rm(list = ls())
 
 n_params <- 17 # set number of parameters
 # set files with sobol indices
-sobol_file_1 <- paste0('output/Sobol-1-tot_temp.txt')
-sobol_file_2 <- paste0('output/Sobol-2-tot_temp.txt')
+sobol_file_1 <- paste0('output/Sobol-1-cum_emissions.txt')
+sobol_file_2 <- paste0('output/Sobol-2-cum_emissions.txt')
 
 ## plot spider plot
 library(RColorBrewer)
@@ -189,10 +189,3 @@ print('********************************')
 print('significant second-order indices:')
 print(s2.sort)
 print('********************************')
-
-<- s2.sort[itmp,]
-print('********************************')
-print('significant second-order indices:')
-print(s2.sort)
-print('********************************')
-
