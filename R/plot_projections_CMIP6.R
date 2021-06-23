@@ -27,11 +27,11 @@ tol9qualitative=c("#88CCEE", "#44AA99", "#117733", "#332288", "#AA4499",  "#CC66
 
 cbbpsqualitative <- c("#000000", "#e79f00", "#9ad0f3", "#CC79A7", "#0072B2", "#009E73", "#F0E442", "#D55E00")
 
-scenarios <- c('base', 'low', 'high', 'alt_zc')
+scenarios <- c('base', 'low', 'high', 'del_zc')
 scen_labels <- c('Standard', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Carbon')
 
-get_emissions <- function(sim_out) {
-  do.call(cbind, lapply(sim_out, function(l) l$out$C))
+get_emissions <- function(sim_out, yrs) {
+  do.call(cbind, lapply(sim_out, function(l) l$out$C[l$out$year %in% yrs]))
 }
 
 emis_q <- function(emis, yrs) {
@@ -53,7 +53,7 @@ for (scen in scenarios) {
   sim_out[[scen]] <- readRDS(paste0('output/sim_', scen, '-gwp-co2.rds'))
 }
 
-emis <- lapply(sim_out, get_emissions)
+emis <- lapply(sim_out, get_emissions, yrs=yrs)
 
 co2_q <- lapply(emis, emis_q, yrs=yrs)
 co2_q <- bind_rows(co2_q, .id='scenario')
@@ -72,16 +72,15 @@ p_series <- ggplot() + geom_ribbon(data=co2_q,
   scale_linetype_discrete('Marker') + 
   scale_fill_manual('Model Scenario', values=cbbpsqualitative) + 
   scale_x_continuous('Year', limits=c(2000, 2100), breaks=seq(2000, 2100, by=20), expand=c(0, 0)) + 
-  theme_classic(base_size=5) +
+  theme_classic(base_size=10) +
   theme(plot.margin=unit(c(7, -0.35, 5, 2), 'mm'), legend.position='bottom', 
         legend.box='vertical', legend.box.just = 'left', legend.spacing = unit(0, 'cm'),
-        legend.text=element_text(size=5), axis.text=element_text(size=5),
-        legend.key.size=unit(0.5, 'cm')) + 
-  guides(color = guide_legend(order=1, ncol=3, byrow=FALSE, override_aes=list(size=5)), 
+        legend.key.size=unit(0.5, 'cm'), legend.margin=margin(c(0.5, 0, 0, 0))) + 
+  guides(color = guide_legend(order=1, ncol=2, byrow=FALSE, override_aes=list(size=5)), 
          linetype = guide_legend(order=2), fill = guide_legend(order=3, nrow=2, byrow=FALSE))
 
 p_marg <- ggplot() + stat_density(data=co2_2100, 
-                                  aes(x=value, fill=case, color=case), alpha=0.3, geom='area', 
+                                  aes(x=value, fill=case, color=case), geom='line', 
                                   position='identity') + 
   scale_x_continuous(limits=c(0, 40), expand=c(0, 0)) + 
   scale_y_continuous(expand=c(0, 0)) + 
@@ -90,7 +89,7 @@ p_marg <- ggplot() + stat_density(data=co2_2100,
   scale_color_manual('', values=cbbpsqualitative) + 
   theme_classic(base_size=5) +
   theme(axis.text.y=element_blank(), axis.title.y=element_blank(), axis.ticks.y=element_blank(), 
-        panel.border=element_blank(), plot.margin=unit(c(7, 1, 9.1, -0.05), 'mm'), 
+        panel.border=element_blank(), plot.margin=unit(c(7, 1, 13.2, -0.05), 'mm'), 
         axis.title.x=element_blank(), axis.ticks.x=element_blank(), axis.text.x=element_blank(), 
         axis.line.x=element_blank(), legend.position='none')
 
@@ -110,10 +109,10 @@ fig <- arrangeGrob(p, legend, ncol=1,
                    heights=unit.c(unit(1, 'npc') - lheight, lheight)
 )
 
-pdf('figures/emissions-CMIP6.pdf', height=3.75, width=3.5)
+pdf('figures/emissions-CMIP6.pdf', height=4, width=3.5)
 grid.draw(fig)
 dev.off()
 
-png('figures/emissions-CMIP6.png', height=3.75, width=3.5, units='in', res=600)
+png('figures/emissions-CMIP6.png', height=4, width=3.5, units='in', res=600)
 grid.draw(fig)
 dev.off()
