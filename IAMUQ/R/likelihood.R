@@ -202,6 +202,43 @@ check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh=6000
   }
 }
 
+#' Check the tech penetration constraints.
+#'
+#' \code{check_penetration_constraints} check whether the simulation results pass the technological penetration constraints.
+#'
+#' The default priors for the technological substitution process are quite broad, so this check helps to constrain the range of outcomes to reflect more realistic dynamics.
+#'
+#' @param model_out Data frame produced by the model.
+#' @param years Numeric vector of years for which the constraint is defined. By default this is \code{NA}, as the constraint is turned off. In principle the function should not be called if \code{years=NA}.
+#' @param windows List specifying the windows for each technology at each year. Each element of the list should correspond to a year set in \code{years}. The windows should be specified in a 2x3 matrix where the rows are the lower and upper bounds and the columns correspond to the high-emitting technology, the low-emitting technology, and the zero-emissions technology. If a particular technology is not used in the constraint, set the corresponding row values as \code{NA}. The pre-industrial technology is ignored. By default this has a value of \code{NA}, as the constraint is turned off. An error will be returned if the format of this list doesn't match the specification and the number of years.
+#' @return Boolean value corresponding to whether the simulation passes the constraint.
+check_penetration_constraints <- function(model_out, years=NA, windows=NA) {
+  # if years = NA, just return TRUE if this somehow got called.
+  if (is.na(years)) {
+    return TRUE
+  }
+  # throw an error if the number of years doesn't match the number of provided windows.
+  if (length(years) != length(windows)) {
+    stop("Number of constraint years does not match specified windows")
+  }
+  # throw an error if the dimension of the first window is not correct
+  if (isTRUE(all.equal(dim(windows[[1]]), c(2, 3)))) {
+    stop("Window data is not specified properly")
+  }
+  # if we got past that, check the constraints for each year
+  # get the energy mix for each specified year
+  tech_pen_colnames <- c('Frac_FossilHi', 'Frac_FossilLo', 'Frac_NonFossil')
+  tech_shares <- model_out[model_out$year %in% years, tech_pen_colnames]
+  # split tech shares into a list for purposes of comparison with the windows
+  tech_list <- split(tech_shares, rep(1:nrow(tech_shares), times=ncol(tech_shares)))
+  # sort years so they're the same order as the filtered model output
+  sort_idx <- order(years)
+  windows_sorted <- windows[sort_idx]
+  # compare tech shares to the bounds for each year
+  pass_const_yr <- mapply(function(x, bsd) all(x >= bds[1,] & x <= bds[2,], na.rm=TRUE), tech_list, windows_sorted)
+  all(pass_const_yr) # return true only if all constraints were passed
+}  
+
 #' Calculate model residuals.
 #'
 #' \code{residuals} computes the model residuals relative to the data.
