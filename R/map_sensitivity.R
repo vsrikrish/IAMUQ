@@ -25,6 +25,10 @@ ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
 exp_gwp <- TRUE # do we do probabilistic inversion for average GWP per capita?
 exp_co2 <- TRUE
 residtype <- 'var'
+## set fossil fuel penetration windows for coal and renewable penetration
+## based on data from BP Statistical Review of World Energy
+ff_pen_yr <- 2019
+ff_pen_window <- list(cbind(c(20, 30), c(NA, NA), c(10, 20))
   
 if (residtype == 'ar') {
   parnames <- c('psi1', 'psi2', 'psi3', 'P0', 'lambda', 's', 'delta', 'alpha', 'As', 'pi', 'A0', 'rho2', 'rho3', 'tau2', 'tau3', 'tau4', 'kappa', 'sigma_pop', 'sigma_prod', 'sigma_emis', 'a_pop', 'a_prod', 'a_emis', , 'eps1_pop', 'eps1_prod', 'eps1_emis')
@@ -65,7 +69,7 @@ if (scenario == 'alt_s') {
 }
 
 ## find MAP estimate
-map_out <- find_map(neg_log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, NP_scale=25, n_iter=5000, parallel=TRUE, trace=FALSE, thresh=ff_thresh, ff_const_yrs=ff_const_yrs, exp_gwp=exp_gwp, exp_co2=exp_co2)
+map_out <- find_map(neg_log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, NP_scale=25, n_iter=5000, parallel=TRUE, trace=FALSE, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr, exp_gwp=exp_gwp, exp_co2=exp_co2)
 
 ## save estimate
 ## save estimate

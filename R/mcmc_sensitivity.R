@@ -3,6 +3,7 @@ rm(list=ls()) # clean up environment
 library(IAMUQ)
 
 source('R/calib_priors.R')
+source('R/compute_fossil_threshold.R')
 
 ## set case for this run
 # read in PBS job array index to specify type
@@ -21,11 +22,15 @@ if (aid == '') {
 
 ## set model run parameters
 data_yrs <- 1820:2014 # years for observational constraints
-ff_thresh <- 6000 # fossil fuel constraint in GtC
-ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
+ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
+ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
 exp_gwp <- TRUE # do we do probabilistic inversion for average GWP per capita?
 exp_co2 <- TRUE
 residtype <- 'var'
+## set fossil fuel penetration windows for coal and renewable penetration
+## based on data from BP Statistical Review of World Energy
+ff_pen_yr <- 2019
+ff_pen_window <- list(cbind(c(20, 30), c(NA, NA), c(10, 20))
   
 if (residtype == 'ar') {
   parnames <- c('psi1', 'psi2', 'psi3', 'P0', 'lambda', 's', 'delta', 'alpha', 'As', 'pi', 'A0', 'rho2', 'rho3', 'tau2', 'tau3', 'tau4', 'kappa', 'sigma_pop', 'sigma_prod', 'sigma_emis', 'a_pop', 'a_prod', 'a_emis', , 'eps1_pop', 'eps1_prod', 'eps1_emis')
@@ -71,7 +76,7 @@ if (scenario == 'alt_s') {
 map <- readRDS(paste0('output/map_', scenario, '-gwp-co2.rds'))
 
 ## run MCMC chains (using parallel default)
-mcmc_out <- run_mcmc(log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, init=map$optim$bestmem, n_iter=2e6, thresh=ff_thresh, ff_const_yrs=ff_const_yrs, exp_gwp=exp_gwp, exp_co2=exp_co2)
+mcmc_out <- run_mcmc(log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, init=map$optim$bestmem, n_iter=2e6, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr, exp_gwp=exp_gwp, exp_co2=exp_co2)
 
 ## save estimate
 saveRDS(mcmc_out, paste0('output/mcmc_', scenario, '-gwp-co2.rds'))

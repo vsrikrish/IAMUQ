@@ -3,6 +3,7 @@ rm(list=ls()) # clean up environment
 library(IAMUQ)
 
 source('R/calib_priors.R')
+source('R/compute_fossil_thresholds.R')
 
 ## set case for this run
 # read in PBS job array index to specify type
@@ -39,33 +40,33 @@ if (exp_assess == 'gwp') {
 # the base scenario corresponds to the model defaults, but we set it up here for consistency's sake
 if (scenario == 'base') {
   data_yrs <- 1820:2014 # years for observational constraints
-  ff_thresh <- 6000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
+  ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
+  ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var'
 } else if (scenario == 'short') {
   data_yrs <- 1950:2014 # years for observational constraints
-  ff_thresh <- 6000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
+  ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
+  ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
 } else if (scenario == 'iid') {
   data_yrs <- 1820:2014 # years for observational constraints
-  ff_thresh <- 6000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
+  ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
+  ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'iid'
 } else if (scenario == 'low') {
   data_yrs <- 1820:2014 # years for observational constraints
-  ff_thresh <- 3000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 2015:2500 # years over which fossil fuel constraint is evaluated
+  ff_thresh <- compute_fossil_threshold('low') # fossil fuel constraint in GtC
+  ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
 } else if (scenario == 'high') {
   data_yrs <- 1820:2014 # years for observational constraints
-  ff_thresh <- 10000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 2015:2500 # years over which fossil fuel constraint is evaluated
+  ff_thresh <- compute_fossil_threshold('high') # fossil fuel constraint in GtC
+  ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
 } else if (scenario == 'del_zc') {
   data_yrs <- 1820:2014 # years for observational constraints
-  ff_thresh <- 6000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
+  ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
+  ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
 }
 
@@ -88,6 +89,11 @@ if (scenario == 'del_zc') {
   prior_df[zc_idx, 'upper'] <- 2400
 }
 
+## set fossil fuel penetration windows for coal and renewable penetration
+## based on data from BP Statistical Review of World Energy
+ff_pen_yr <- 2019
+ff_pen_window <- list(cbind(c(20, 30), c(NA, NA), c(10, 20))
+
 ## read in MAP estimate for that scenario as the initial value as the
 ## save estimate
 appendix <- ''
@@ -100,7 +106,7 @@ if (exp_co2) {
 map <- readRDS(paste0('output/map_', scenario, appendix, '.rds'))
 
 ## run MCMC chains (using parallel default)
-mcmc_out <- run_mcmc(log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, init=map$optim$bestmem, n_iter=2e6, thresh=ff_thresh, ff_const_yrs=ff_const_yrs, exp_gwp=exp_gwp, exp_co2=exp_co2)
+mcmc_out <- run_mcmc(log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, init=map$optim$bestmem, n_iter=2e6, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr, exp_gwp=exp_gwp, exp_co2=exp_co2)
 
 ## save estimate
 saveRDS(mcmc_out, paste0('output/mcmc_', scenario, appendix, '.rds'))
