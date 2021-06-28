@@ -215,7 +215,7 @@ check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh=6000
 check_penetration_constraints <- function(model_out, years=NA, windows=NA) {
   # if years = NA, just return TRUE if this somehow got called.
   if (is.na(years)) {
-    return TRUE
+    return(TRUE)
   }
   # throw an error if the number of years doesn't match the number of provided windows.
   if (length(years) != length(windows)) {
