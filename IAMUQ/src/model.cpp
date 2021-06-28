@@ -36,11 +36,17 @@ double update_gwp(double A, double L, double K, double lambda) {
   return gwp;
 }
 
-double update_emis(double Q, NumericVector gamma, NumericVector rho) {
-  double phi = std::inner_product(gamma.begin(), gamma.end(), rho.begin(), 0.0);
-  double emis = Q * phi;
+NumericVector compute_emis(NumericVector gamma, NumericVector rho) {
+  NumericVector phi = gamma * rho;
+  
+  return phi;
+}
+
+double update_emis(double Q, NumericVector phi) {
+  double emis = sum(Q * phi);
   
   return emis;
+
 }
 
 // [[Rcpp::export]]
@@ -66,6 +72,7 @@ DataFrame model_run(NumericVector yr,
   NumericVector L (n_yr);
   NumericVector K (n_yr);
   NumericVector Q (n_yr);
+  NumericMatrix E (n_yr, 2);
   NumericVector C (n_yr);
   
   // set initial values
@@ -82,7 +89,8 @@ DataFrame model_run(NumericVector yr,
     A[0] = A0;
     K[0] = L[0] * pow(s * A[0] /  delta,  1/lambda);
     Q[0] = update_gwp(A[0], L[0], K[0], lambda);
-    C[0] = update_emis(Q[0], gamma(0, _ ), rho);
+    E(0, _) = compute_emis(gamma(0, _), rho);
+    C[0] = update_emis(Q[0], E(0, _ ));
   }
   
   // loop over years and run model
@@ -92,7 +100,8 @@ DataFrame model_run(NumericVector yr,
     L[i] = update_labor(P[i], pi);
     K[i] = update_capital(Q[i-1], K[i-1], delta, s);
     Q[i] = update_gwp(A[i], L[i], K[i], lambda);
-    C[i] = update_emis(Q[i], gamma(i, _ ), rho);
+    E(i, _) = compute_emis(gamma(i, _), rho);
+    C[i] = update_emis(Q[i], E(i, _));
   }
   
   // form return DataFrame
@@ -102,6 +111,8 @@ DataFrame model_run(NumericVector yr,
                                      Named("A") = A,
                                      Named("K") = K,
                                      Named("L") = L,
+                                     Named("emis_lo") = E(_, 1),
+                                     Named("emis_hi") = E(_, 2),
                                      Named("C") = C
                                     );
   
