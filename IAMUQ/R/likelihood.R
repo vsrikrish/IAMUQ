@@ -193,13 +193,18 @@ check_param_constraints <- function(pars, parnames) {
 #' @param thresh Fossil fuel resource constraint value (in Gt C).
 #' @return Boolean value corresponding to if the model output satisfies the
 #'  constraint.
-check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh=6000) {
-  fossil_tot <- cum_co2(emis=model_out$C, yrs=model_out$year, start, end)
-  if (is.na(fossil_tot)) {
-    FALSE
-  } else {
-    fossil_tot <= thresh
+check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh=NA) {
+  if (is.na(thresh)) {
+    return(TRUE)
   }
+  years <- seq(start, end)
+  fossil_emis <- model_out[model_out$year %in% years, c('emis_lo', 'emis_hi')]
+  if (any(is.na(fossil_emis))) {
+    return(FALSE)
+  }
+  fossil_emis_tot <- colSums(fossil_emis)
+  all(fossil_emis_tot <= thresh) # return whether all of the fossil constraints are met
+    
 }
 
 #' Check the tech penetration constraints.
