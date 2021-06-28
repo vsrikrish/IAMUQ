@@ -111,8 +111,8 @@ DataFrame model_run(NumericVector yr,
                                      Named("A") = A,
                                      Named("K") = K,
                                      Named("L") = L,
+                                     Named("emis_hi") = E(_, 0),
                                      Named("emis_lo") = E(_, 1),
-                                     Named("emis_hi") = E(_, 2),
                                      Named("C") = C
                                     );
   
