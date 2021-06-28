@@ -314,20 +314,12 @@ residuals <- function(model_out, dat) {
 #' @param dat List of data frames of data. List should have names 'pop'
 #'  (population), 'prod' (production), and 'emissions,' and each data frame
 #'  should have two columns, 'year' and 'value'.
-#' @param thresh Numeric value setting the fossil fuel resource constraint.
-#' @param ff_const_yrs Numeric vector setting the years over which the fossil
-#'  fuel constraint should be evaluated. This can be a full sequence or a
-#'  vector with the start and end years.
 #' @param hoyrs Integer vector of years that should be held out from the
 #'  likelihood function computation.
 #' @return Numeric value for the log-likelihood of the parameters given the
 #'  data and the fossil fuel constraint value.
 #' @export
-log_lik_iid <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
-  # check for fossil fuel constraint
-  if (!check_fossil_constraint(model_out, start=ff_const_yrs[1], end=ff_const_yrs[length(ff_const_yrs)], thresh=thresh)) {
-    return(-Inf)
-  }
+log_lik_iid <- function(pars, parnames, model_out, dat, hoyrs=NULL) {
   
   # remove held out data if there is any and compute residuals
   if (length(hoyrs) > 0) {
@@ -397,21 +389,12 @@ log_lik_iid <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
 #' @param dat List of data frames of data. List should have names 'pop'
 #'  (population), 'prod' (production), and 'emissions,' and each data frame
 #'  should have two columns, 'year' and 'value'.
-#' @param thresh Numeric value setting the fossil fuel resource constraint.
-#' @param ff_const_yrs Numeric vector setting the years over which the fossil
-#'  fuel constraint should be evaluated. This can be a full sequence or a
-#'  vector with the start and end years.
 #' @param hoyrs Integer vector of years that should be held out from the
 #'  likelihood function computation.
 #' @return Numeric value for the log-likelihood of the parameters given the
 #'  data and the fossil fuel constraint value.
 #' @export
-log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
-  # check fossil fuel constraint
-  if (!check_fossil_constraint(model_out, start=ff_const_yrs[1], end=ff_const_yrs[length(ff_const_yrs)], thresh=thresh)) {
-    return(-Inf)
-  }
-  
+log_lik_var <- function(pars, parnames, model_out, dat, hoyrs=NULL) {  
   # remove held out data if there is any, find indices for removal from the covariance matrix, and compute residuals
   if (length(hoyrs) > 0) {
     d <- lapply(dat, function(l) l[-which(l$year %in% hoyrs), ]) # remove held out data
@@ -534,16 +517,18 @@ log_lik_var <- function(pars, parnames, model_out, dat, thresh=6000, ff_const_yr
 #' @param exp_co2 Boolean: should the provided expert assessment of CO2
 #'  emissions in 2100 (\code{log_exp_co2}) be inverted for additional
 #'  prior structure?
-#' @param thresh Numeric value setting the fossil fuel resource constraint.
+#' @param ff_thresh Numeric vector with two elements specifying the fossil fuel constraint thresholds. By default, this is NA so the constraint is turned off.
 #' @param ff_const_yrs Numeric vector setting the years over which the fossil
 #'  fuel constraint should be evaluated. This can be a full sequence or a
 #'  vector with the start and end years.
+#' @param ff_pen_windows List of matrices giving the bounds for a fossil fuel penetration constraint. Each list element should be a 2x3 matrix specifying the lower (row 1) and upper (row 2) penetration bounds for each year in which the constraint is specified. By default this is NA, so the constraint is turned off.
+#' @param ff_pen_yrs Vector of years for which the penetration threshold is defined. By default this is NA.
 #' @param hoyrs Integer vector of years that should be held out from the
 #'  likelihood function computation.
 #' @return Numeric value for the log-posterior of the parameters given the
 #'  priors, the data and the fossil fuel constraint value.
 #' @export
-log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
+log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, ff_thresh=NA, ff_const_yrs=NA, ff_pen_windows=NA, ff_pen_yrs=NA, hoyrs=NULL) {
   
   # check for parameter constraints and return -Inf if not satisfied
   if (!check_param_constraints(pars, parnames))  {
@@ -559,7 +544,17 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co
   # run model to end date, which is 2500
   yr <- 1700:2500
   model_out <- run_model(pars, parnames, start=1700, end=2500)
-  ll <- match.fun(lik_fun)(pars, parnames, model_out, dat, thresh=thresh, ff_const_yrs=ff_const_yrs, hoyrs=hoyrs) # evaluate likelihood
+  ## check fossil fuel constraint 
+  if (!check_fossil_constraint(model_out, start=ff_const_yrs[1], end=ff_const_yrs[length(ff_const_yrs)], thresh=ff_thresh)) {
+    return(-Inf)
+  }
+
+  ## check penetration constraint
+  if (!check_penetration_constraint(model_out, windows=ff_pen_windows, years=ff_pen_yrs)) {
+      return(-Inf)
+  }
+  
+  ll <- match.fun(lik_fun)(pars, parnames, model_out, dat, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_windows, ff_pen_yrs=ff_pen_yrs, hoyrs=hoyrs) # evaluate likelihood
   
   lpost <- lpri + ll # store sum of log-likelihood and log-prior
 
@@ -647,20 +642,22 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co
 #' @param exp_co2 Boolean: should the provided expert assessment of CO2
 #'  emissions in 2100 (\code{log_exp_co2}) be inverted for additional
 #'  prior structure?
-#' @param thresh Numeric value setting the fossil fuel resource constraint.
+#' @param ff_thresh Numeric vector with two elements specifying the fossil fuel constraint thresholds. By default, this is NA so the constraint is turned off.
 #' @param ff_const_yrs Numeric vector setting the years over which the fossil
 #'  fuel constraint should be evaluated. This can be a full sequence or a
 #'  vector with the start and end years.
+#' @param ff_pen_windows List of matrices giving the bounds for a fossil fuel penetration constraint. Each list element should be a 2x3 matrix specifying the lower (row 1) and upper (row 2) penetration bounds for each year in which the constraint is specified. By default this is NA, so the constraint is turned off.
+#' @param ff_pen_yrs Vector of years for which the penetration threshold is defined. By default this is NA.
 #' @param hoyrs Integer vector of years that should be held out from the
 #'  likelihood function computation.
 #' @return Numeric value for the log-posterior of the parameters given the
 #'  priors, the data and the fossil fuel constraint value.
 #' @export
-neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, thresh=6000, ff_const_yrs=1700:2500, hoyrs=NULL) {
+neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, ff_thresh=NA, ff_const_yrs=NA, ff_pen_windows=NA, ff_pen_yrs=NA, hoyrs=NULL) {
 
-  # evaluate log-likelihood
-  lp <- log_post(pars,parnames, priors, dat, lik_fun, exp_gwp, thresh=thresh, ff_const_yrs=ff_const_yrs, hoyrs=hoyrs)
-  # return negative log-likelihood
+  # evaluate log-posterior
+  lp <- log_post(pars,parnames, priors, dat, lik_fun, exp_gwp, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_windows, ff_pen_yrs=ff_pen_yrs, hoyrs=hoyrs)
+  # return negative log-posterior
   -1*lp
 }
 
