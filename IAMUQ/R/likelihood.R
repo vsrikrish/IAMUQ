@@ -198,10 +198,11 @@ check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh=NA) 
     return(TRUE)
   }
   years <- seq(start, end)
-  fossil_emis <- model_out[model_out$year %in% years, c('emis_lo', 'emis_hi')]
-  if (any(is.na(fossil_emis))) {
+  fossil_emis_fact <- model_out[model_out$year %in% years, c('Q', 'emis_lo', 'emis_hi')]
+  if (any(is.na(fossil_emis_fact))) {
     return(FALSE)
   }
+  fossil_emis <- fossil_emis_fact[, 'Q'] * fossil_emis_fact[, !names(fossil_emis_fact) %in% c('Q')]
   fossil_emis_tot <- colSums(fossil_emis)
   all(fossil_emis_tot <= thresh) # return whether all of the fossil constraints are met
     
@@ -240,7 +241,7 @@ check_penetration_constraints <- function(model_out, years=NA, windows=NA) {
   sort_idx <- order(years)
   windows_sorted <- windows[sort_idx]
   # compare tech shares to the bounds for each year
-  pass_const_yr <- mapply(function(x, bsd) all(x >= bds[1,] & x <= bds[2,], na.rm=TRUE), tech_list, windows_sorted)
+  pass_const_yr <- mapply(function(x, bds) all(x >= bds[1,] & x <= bds[2,], na.rm=TRUE), tech_list, windows_sorted)
   all(pass_const_yr) # return true only if all constraints were passed
 }  
 
