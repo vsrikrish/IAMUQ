@@ -70,18 +70,18 @@ set_prior_params <- function(parnames) {
     } else if (name == 'rho2') {
       prior_df[i, 'type'] <- 'uniform'
       prior_df[i, 'lower'] <- 0
-      prior_df[i, 'upper'] <- 0.75
+      prior_df[i, 'upper'] <- 3
     } else if (name == 'rho3') {
       prior_df[i, 'type'] <- 'uniform'
       prior_df[i, 'lower'] <- 0
-      prior_df[i, 'upper'] <- 0.75
+      prior_df[i, 'upper'] <- 3
     } else if (name == 'tau2') {
       prior_df[i, 'type'] <- 'uniform'
-      prior_df[i, 'lower'] <- 1700
-      prior_df[i, 'upper'] <- 2100
+      prior_df[i, 'lower'] <- 1800
+      prior_df[i, 'upper'] <- 2000
     } else if (name == 'tau3') {
       prior_df[i, 'type'] <- 'uniform'
-      prior_df[i, 'lower'] <- 1700
+      prior_df[i, 'lower'] <- 1900
       prior_df[i, 'upper'] <- 2100
     } else if (name == 'tau4') {
       prior_df[i, 'type'] <- 'truncnorm'
