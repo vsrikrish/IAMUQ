@@ -221,7 +221,7 @@ check_param_constraints <- function(pars, parnames) {
 #' @return Boolean value corresponding to if the model output satisfies the
 #'  constraint.
 check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh=NA) {
-  if (is.na(thresh)) {
+  if (all(is.na(thresh))) {
     return(TRUE)
   }
   years <- seq(start, end)
@@ -231,7 +231,7 @@ check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh=NA) 
   }
   fossil_emis <- fossil_emis_fact[, 'Q'] * fossil_emis_fact[, !names(fossil_emis_fact) %in% c('Q')]
   fossil_emis_tot <- colSums(fossil_emis)
-  all(fossil_emis_tot <= thresh) # return whether all of the fossil constraints are met
+  all(fossil_emis_tot <= thresh, na.rm=TRUE) # return whether all of the fossil constraints are met
     
 }
 
@@ -245,7 +245,7 @@ check_fossil_constraint <- function(model_out, start=1700, end=2500, thresh=NA) 
 #' @param years Numeric vector of years for which the constraint is defined. By default this is \code{NA}, as the constraint is turned off. In principle the function should not be called if \code{years=NA}.
 #' @param windows List specifying the windows for each technology at each year. Each element of the list should correspond to a year set in \code{years}. The windows should be specified in a 2x3 matrix where the rows are the lower and upper bounds and the columns correspond to the high-emitting technology, the low-emitting technology, and the zero-emissions technology. If a particular technology is not used in the constraint, set the corresponding row values as \code{NA}. The pre-industrial technology is ignored. By default this has a value of \code{NA}, as the constraint is turned off. An error will be returned if the format of this list doesn't match the specification and the number of years.
 #' @return Boolean value corresponding to whether the simulation passes the constraint.
-check_penetration_constraints <- function(model_out, years=NA, windows=NA) {
+check_penetration_constraint <- function(model_out, years=NA, windows=NA) {
   # if years = NA, just return TRUE if this somehow got called.
   if (is.na(years)) {
     return(TRUE)
@@ -255,7 +255,7 @@ check_penetration_constraints <- function(model_out, years=NA, windows=NA) {
     stop("Number of constraint years does not match specified windows")
   }
   # throw an error if the dimension of the first window is not correct
-  if (isTRUE(all.equal(dim(windows[[1]]), c(2, 3)))) {
+  if (!isTRUE(all.equal(dim(windows[[1]]), c(2, 3)))) {
     stop("Window data is not specified properly")
   }
   # if we got past that, check the constraints for each year
@@ -269,7 +269,7 @@ check_penetration_constraints <- function(model_out, years=NA, windows=NA) {
   windows_sorted <- windows[sort_idx]
   # compare tech shares to the bounds for each year
   pass_const_yr <- mapply(function(x, bds) all(x >= bds[1,] & x <= bds[2,], na.rm=TRUE), tech_list, windows_sorted)
-  all(pass_const_yr) # return true only if all constraints were passed
+  all(pass_const_yr, na.rm=TRUE) # return true only if all constraints were passed
 }  
 
 #' Calculate model residuals.
@@ -584,7 +584,7 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co
       return(-Inf)
   }
   
-  ll <- match.fun(lik_fun)(pars, parnames, model_out, dat, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_windows, ff_pen_yrs=ff_pen_yrs, hoyrs=hoyrs) # evaluate likelihood
+  ll <- match.fun(lik_fun)(pars, parnames, model_out, dat, hoyrs=hoyrs) # evaluate likelihood
   
   lpost <- lpri + ll # store sum of log-likelihood and log-prior
 
