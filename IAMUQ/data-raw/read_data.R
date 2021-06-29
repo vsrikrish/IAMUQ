@@ -23,8 +23,8 @@ po_dat <- po_dat[po_dat$year %in% valid_yr, ]
 pr_dat <- pr_dat[pr_dat$year %in% valid_yr, ]
 ### add in UN and World Bank data for 2019; these are just pulled from the relevant websites and not stored in a local file.
 # there is some inconsistency here between the series, but they're pretty close
-po_dat <- rbind(po_dat, c(year=2019, value=7.713468)
-pr_dat <- rbind(pr_dat, c(year=2019, value=119.2541) # adjusted for inflation from 2017 to 2011US$
+po_dat <- rbind(po_dat, c(year=2019, value=7.713468))
+pr_dat <- rbind(pr_dat, c(year=2019, value=119.2541)) # adjusted for inflation from 2017 to 2011US$
 
 ### read in global emissions data (in Gt CO2)
 ## from Boden et al (2017)
