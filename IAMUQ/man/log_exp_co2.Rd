@@ -11,7 +11,7 @@ log_exp_co2(model_out)
 }).}
 }
 \value{
-Log-density value of the model average GWP per-capita growth rate.
+Log-density value of the model CO2 emissions in 2100.
 }
 \description{
 \code{log_exp_co2} returns the log-density for the expert assessment of

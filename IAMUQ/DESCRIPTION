@@ -19,4 +19,4 @@ Imports: Rcpp (>= 1.0.0),
 	 magic
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: true
-RoxygenNote: 7.0.0
+RoxygenNote: 7.1.1

@@ -4,7 +4,7 @@
 \alias{check_fossil_constraint}
 \title{Check if model output satisfies the fossil fuel resource constraint.}
 \usage{
-check_fossil_constraint(model_out, start = 1700, end = 2500, thresh = 6000)
+check_fossil_constraint(model_out, start = 1700, end = 2500, thresh = NA)
 }
 \arguments{
 \item{model_out}{Data frame produced by the model.}

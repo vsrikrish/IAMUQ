@@ -5,15 +5,7 @@
 \title{Compute the log-likelihood under the assumption of residuals jointly
  distributed according to a VAR(1) model.}
 \usage{
-log_lik_var(
-  pars,
-  parnames,
-  model_out,
-  dat,
-  thresh = 6000,
-  ff_const_yrs = 1700:2500,
-  hoyrs = NULL
-)
+log_lik_var(pars, parnames, model_out, dat, hoyrs = NULL)
 }
 \arguments{
 \item{pars}{Numeric vector of parameter values. These parameters must
@@ -60,12 +52,6 @@ P' (population), 'Q' (production), and 'C' (emissions).}
 \item{dat}{List of data frames of data. List should have names 'pop'
 (population), 'prod' (production), and 'emissions,' and each data frame
 should have two columns, 'year' and 'value'.}
-
-\item{thresh}{Numeric value setting the fossil fuel resource constraint.}
-
-\item{ff_const_yrs}{Numeric vector setting the years over which the fossil
-fuel constraint should be evaluated. This can be a full sequence or a
-vector with the start and end years.}
 
 \item{hoyrs}{Integer vector of years that should be held out from the
 likelihood function computation.}

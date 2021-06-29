@@ -12,8 +12,11 @@ log_post(
   lik_fun,
   exp_gwp = FALSE,
   exp_co2 = FALSE,
-  thresh = 6000,
-  ff_const_yrs = 1700:2500,
+  exp_pop = FALSE,
+  ff_thresh = NA,
+  ff_const_yrs = NA,
+  ff_pen_windows = NA,
+  ff_pen_yrs = NA,
   hoyrs = NULL
 )
 }
@@ -86,11 +89,18 @@ prior structure?}
 emissions in 2100 (\code{log_exp_co2}) be inverted for additional
 prior structure?}
 
-\item{thresh}{Numeric value setting the fossil fuel resource constraint.}
+\item{exp_pop}{Boolean: should the provided expert assessment of population
+in 2100 (\code{log_exp_pop}) be inverted for additional prior structure?}
+
+\item{ff_thresh}{Numeric vector with two elements specifying the fossil fuel constraint thresholds. By default, this is NA so the constraint is turned off.}
 
 \item{ff_const_yrs}{Numeric vector setting the years over which the fossil
 fuel constraint should be evaluated. This can be a full sequence or a
 vector with the start and end years.}
+
+\item{ff_pen_windows}{List of matrices giving the bounds for a fossil fuel penetration constraint. Each list element should be a 2x3 matrix specifying the lower (row 1) and upper (row 2) penetration bounds for each year in which the constraint is specified. By default this is NA, so the constraint is turned off.}
+
+\item{ff_pen_yrs}{Vector of years for which the penetration threshold is defined. By default this is NA.}
 
 \item{hoyrs}{Integer vector of years that should be held out from the
 likelihood function computation.}
