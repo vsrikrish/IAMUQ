@@ -29,8 +29,8 @@ exp_pop <- TRUE
 residtype <- 'var'
 ## set fossil fuel penetration windows for coal and renewable penetration
 ## based on data from BP Statistical Review of World Energy
-ff_pen_yr <- 2019
-ff_pen_window <- list(cbind(c(20, 30), c(NA, NA), c(10, 20))
+ff_pen_yr <- c(2019)
+ff_pen_window <- list(cbind(c(0.20, 0.30), c(NA, NA), c(0.10, 0.20)))
   
 if (residtype == 'ar') {
   parnames <- c('psi1', 'psi2', 'psi3', 'P0', 'lambda', 's', 'delta', 'alpha', 'As', 'pi', 'A0', 'rho2', 'rho3', 'tau2', 'tau3', 'tau4', 'kappa', 'sigma_pop', 'sigma_prod', 'sigma_emis', 'a_pop', 'a_prod', 'a_emis', , 'eps1_pop', 'eps1_prod', 'eps1_emis')

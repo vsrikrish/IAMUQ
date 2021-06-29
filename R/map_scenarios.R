@@ -25,6 +25,7 @@ if (aid == '') {
 
 exp_gwp <- FALSE
 exp_co2 <- FALSE
+exp_pop <- FALSE
 
 if (exp_assess == 'gwp') {
   exp_gwp <- TRUE
@@ -93,20 +94,12 @@ if (scenario == 'del_zc') {
 
 ## set fossil fuel penetration windows for coal and renewable penetration
 ## based on data from BP Statistical Review of World Energy
-ff_pen_yr <- 2019
-ff_pen_window <- list(cbind(c(20, 30), c(NA, NA), c(10, 20))
+ff_pen_yr <- c(2019)
+ff_pen_window <- list(cbind(c(0.20, 0.30), c(NA, NA), c(0.10, 0.20)))
 
-# set parameter names based on residual structure type
-if (residtype == 'ar') {
-  parnames <- c('psi1', 'psi2', 'psi3', 'P0', 'lambda', 's', 'delta', 'alpha', 'As', 'pi', 'A0', 'rho2', 'rho3', 'tau2', 'tau3', 'tau4', 'kappa', 'sigma_pop', 'sigma_prod', 'sigma_emis', 'a_pop', 'a_prod', 'a_emis', , 'eps1_pop', 'eps1_prod', 'eps1_emis')
-} else if (residtype == 'iid') {
-  parnames <- c('psi1', 'psi2', 'psi3', 'P0', 'lambda', 's', 'delta', 'alpha', 'As', 'pi', 'A0', 'rho2', 'rho3', 'tau2', 'tau3', 'tau4', 'kappa', 'sigma_pop', 'sigma_prod', 'sigma_emis')
-} else if (residtype == 'var') {
-  parnames <- c('psi1', 'psi2', 'psi3', 'P0', 'lambda', 's', 'delta', 'alpha', 'As', 'pi', 'A0', 'rho2', 'rho3', 'tau2', 'tau3', 'tau4', 'kappa', 'sigma_pop', 'sigma_prod', 'sigma_emis', 'a_11', 'a_22', 'a_33', 'a_21', 'a_31', 'a_12', 'a_23', 'a_13', 'a_32', 'eps_pop', 'eps_prod', 'eps_emis')
-}
 
 ## find MAP estimate
-map_out <- find_map(neg_log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, NP_scale=25, n_iter=5000, parallel=TRUE, trace=FALSE, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr,, exp_gwp=exp_gwp, exp_co2=exp_co2, exp_pop=exp_pop)
+map_out <- find_map(neg_log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, NP_scale=25, n_iter=5000, parallel=TRUE, trace=FALSE, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr, exp_gwp=exp_gwp, exp_co2=exp_co2, exp_pop=exp_pop)
 
 ## save estimate
 ## save estimate

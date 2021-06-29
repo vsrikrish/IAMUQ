@@ -95,8 +95,8 @@ if (scenario == 'del_zc') {
 
 ## set fossil fuel penetration windows for coal and renewable penetration
 ## based on data from BP Statistical Review of World Energy (2019)
-ff_pen_yr <- 2019
-ff_pen_window <- list(cbind(c(20, 30), c(NA, NA), c(10, 20))
+ff_pen_yr <- c(2019)
+ff_pen_window <- list(cbind(c(0.20, 0.30), c(NA, NA), c(0.10, 0.20)))
 
 ## read in MAP estimate for that scenario as the initial value as the
 ## save estimate
