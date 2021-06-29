@@ -14,8 +14,8 @@
 #' @return Log-density value of the model average GWP per-capita growth rate.
 log_exp_gwp <- function(model_out) {
   # set parameter values for expert assessment distribution
-  mu=2.54 # mean on percentage scale
-  sigma=1.07 # sd on percentage scale
+  mu <- 2.54 # mean on percentage scale
+  sigma <- 1.07 # sd on percentage scale
 
   # compute per-capita growth rates from model output
   gwp_rt <- avg_gwp_rate(model_out$P, model_out$Q, yrs=model_out$year, start=2010, end=2100)
@@ -38,18 +38,45 @@ log_exp_gwp <- function(model_out) {
 #'
 #' @param model_out Data frame of model output (from \code{\link{run_model}
 #' }).
-#' @return Log-density value of the model average GWP per-capita growth rate.
+#' @return Log-density value of the model CO2 emissions in 2100.
 log_exp_co2 <- function(model_out) {
   # set parameter values for expert assessment distribution
-  mu=23.1 # mean
-  sigma=9 # sd on percentage scale
+  mu <- 23.1 # mean
+  sigma <- 9 # sd on percentage scale
 
   # get CO2 emissions level in 2100 from model output
-  co2_2100 <- model_out$C[model_out$year == 2100]
+  co2_2100 <- model_out$C[model_out$year == 2100] / 3.667 # computed the distribution in Gt C instead of Gt CO2, so convert
   
   # compute and return log-likelihood of CO2 emissions given expert assessment
   dnorm(co2_2100, mean=mu, sd=sigma, log=TRUE)
 }
+
+#' Log-density for the expert assessment of population in 2100.
+#'
+#' \code{log_exp_pop} returns the log-density for the probabilistic projections of
+#'    population in 2100 from the United Nations, Department of Economic and Social Affairs,
+#'    Population Divison (2019), which is used in
+#'    probabilistic inversion.
+#'
+#' This function uses a normal distribution fit to the 95% prediction interval.
+#' It evaluates the density value of the model
+#'  output based on this reference distribution.
+#'
+#' @param model_out Data frame of model output (from \code{\link{run_model}
+#' }).
+#' @return Log-density value of the model population in 2100.
+
+log_exp_pop <- function(model_out) {
+    ## set parameter values for expert assessment distribution
+    mu <- 11
+    sigma <- 0.83
+    
+    ## get population in 2100 from model output
+    pop_2100 <- model_out$P[model_out$year == 2100]
+
+    ## compute and return log-likelihood of population given the assessment
+    dnorm(pop_2100, mean=mu, sd=sigma, log=TRUE)
+}   
   
 #' Log-prior density for the provided parameter values
 #'
@@ -518,6 +545,8 @@ log_lik_var <- function(pars, parnames, model_out, dat, hoyrs=NULL) {
 #' @param exp_co2 Boolean: should the provided expert assessment of CO2
 #'  emissions in 2100 (\code{log_exp_co2}) be inverted for additional
 #'  prior structure?
+#' @param exp_pop Boolean: should the provided expert assessment of population
+#' in 2100 (\code{log_exp_pop}) be inverted for additional prior structure?
 #' @param ff_thresh Numeric vector with two elements specifying the fossil fuel constraint thresholds. By default, this is NA so the constraint is turned off.
 #' @param ff_const_yrs Numeric vector setting the years over which the fossil
 #'  fuel constraint should be evaluated. This can be a full sequence or a
@@ -529,7 +558,7 @@ log_lik_var <- function(pars, parnames, model_out, dat, hoyrs=NULL) {
 #' @return Numeric value for the log-posterior of the parameters given the
 #'  priors, the data and the fossil fuel constraint value.
 #' @export
-log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, ff_thresh=NA, ff_const_yrs=NA, ff_pen_windows=NA, ff_pen_yrs=NA, hoyrs=NULL) {
+log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, exp_pop=FALSE, ff_thresh=NA, ff_const_yrs=NA, ff_pen_windows=NA, ff_pen_yrs=NA, hoyrs=NULL) {
   
   # check for parameter constraints and return -Inf if not satisfied
   if (!check_param_constraints(pars, parnames))  {
@@ -566,6 +595,10 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co
   if (exp_co2) {
     lpost <- lpost + log_exp_co2(model_out)
   }
+  if (exp_pop) {
+    lpost <- lpost + log_exp_pop(model_out)
+  }
+    
 
   lpost # return log-posterior vlaue
 }
@@ -643,6 +676,8 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co
 #' @param exp_co2 Boolean: should the provided expert assessment of CO2
 #'  emissions in 2100 (\code{log_exp_co2}) be inverted for additional
 #'  prior structure?
+#' @param exp_pop Boolean: should the provided expert assessment of population
+#' in 2100 (\code{log_exp_pop}) be inverted for additional prior structure?
 #' @param ff_thresh Numeric vector with two elements specifying the fossil fuel constraint thresholds. By default, this is NA so the constraint is turned off.
 #' @param ff_const_yrs Numeric vector setting the years over which the fossil
 #'  fuel constraint should be evaluated. This can be a full sequence or a
@@ -654,7 +689,7 @@ log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co
 #' @return Numeric value for the log-posterior of the parameters given the
 #'  priors, the data and the fossil fuel constraint value.
 #' @export
-neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, ff_thresh=NA, ff_const_yrs=NA, ff_pen_windows=NA, ff_pen_yrs=NA, hoyrs=NULL) {
+neg_log_post <- function(pars, parnames, priors, dat, lik_fun, exp_gwp=FALSE, exp_co2=FALSE, exp_pop=FALSE, ff_thresh=NA, ff_const_yrs=NA, ff_pen_windows=NA, ff_pen_yrs=NA, hoyrs=NULL) {
 
   # evaluate log-posterior
   lp <- log_post(pars,parnames, priors, dat, lik_fun, exp_gwp, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_windows, ff_pen_yrs=ff_pen_yrs, hoyrs=hoyrs)
