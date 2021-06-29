@@ -2,6 +2,7 @@ rm(list=ls()) # clean up environment
 
 library(IAMUQ)
 source('R/calib_priors.R')
+source('R/compute_fossil_thresholds.R')
 
 ## set case for this run
 # read in PBS job array index to specify type
@@ -15,7 +16,7 @@ if (aid == '') {
   }
 } else {
   scenarios <- c('iid', 'base', 'short', 'low', 'high', 'del_zc')
-  exp_assess <- c('none', 'gwp', 'co2', 'both')
+  exp_assess <- c('none', 'gwp', 'co2', 'pop', 'all')
   cases <- expand.grid(scenarios=scenarios, exp=exp_assess)
   id <- as.numeric(aid)
   scenario <- cases[id, 'scenarios']
@@ -29,70 +30,43 @@ if (exp_assess == 'gwp') {
   exp_gwp <- TRUE
 } else if (exp_assess == 'co2') {
   exp_co2 <- TRUE
-} else if (exp_assess == 'both') {
+} else if (exp_assess == 'pop') {
+  exp_pop <- TRUE
+} else if (exp_assess == 'all') {
   exp_gwp <- TRUE
   exp_co2 <- TRUE
+  exp_pop <- TRUE
 }
 
 ## set model run parameters associated with each scenario
 # the base scenario corresponds to the model defaults, but we set it up here for consistency's sake
 if (scenario == 'base') {
-  data_yrs <- 1820:2014 # years for observational constraints
-  ff_thresh <- 6000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
-  residtype <- 'var'
-} else if (scenario == 'short') {
-  data_yrs <- 1950:2014 # years for observational constraints
-  ff_thresh <- 6000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
-  residtype <- 'var' # residual structure type
-} else if (scenario == 'iid') {
-  data_yrs <- 1820:2014 # years for observational constraints
-  ff_thresh <- 6000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
-  residtype <- 'iid'
-} else if (scenario == 'low') {
-  data_yrs <- 1820:2014 # years for observational constraints
-  ff_thresh <- 3000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 2015:2500 # years over which fossil fuel constraint is evaluated
-  residtype <- 'var' # residual structure type
-} else if (scenario == 'high') {
-  data_yrs <- 1820:2014 # years for observational constraints
-  ff_thresh <- 10000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 2015:2500 # years over which fossil fuel constraint is evaluated
-  residtype <- 'var' # residual structure type
-} else if (scenario == 'del_zc') {
-  data_yrs <- 1820:2014 # years for observational constraints
-  ff_thresh <- 6000 # fossil fuel constraint in GtC
-  ff_const_yrs <- 1700:2500 # years over which fossil fuel constraint is evaluated
-  residtype <- 'var' # residual structure type
-}if (scenario == 'base') {
-  data_yrs <- 1820:2014 # years for observational constraints
+  data_yrs <- 1820:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var'
 } else if (scenario == 'short') {
-  data_yrs <- 1950:2014 # years for observational constraints
+  data_yrs <- 1950:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
 } else if (scenario == 'iid') {
-  data_yrs <- 1820:2014 # years for observational constraints
+  data_yrs <- 1820:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'iid'
 } else if (scenario == 'low') {
-  data_yrs <- 1820:2014 # years for observational constraints
+  data_yrs <- 1820:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('low') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
 } else if (scenario == 'high') {
-  data_yrs <- 1820:2014 # years for observational constraints
+  data_yrs <- 1820:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('high') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
 } else if (scenario == 'del_zc') {
-  data_yrs <- 1820:2014 # years for observational constraints
+  data_yrs <- 1820:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
@@ -132,7 +106,7 @@ if (residtype == 'ar') {
 }
 
 ## find MAP estimate
-map_out <- find_map(neg_log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, NP_scale=25, n_iter=5000, parallel=TRUE, trace=FALSE, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr,, exp_gwp=exp_gwp, exp_co2=exp_co2)
+map_out <- find_map(neg_log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, NP_scale=25, n_iter=5000, parallel=TRUE, trace=FALSE, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr,, exp_gwp=exp_gwp, exp_co2=exp_co2, exp_pop=exp_pop)
 
 ## save estimate
 ## save estimate
@@ -142,5 +116,8 @@ if (exp_gwp) {
 }
 if (exp_co2) {
   appendix <- paste0(appendix, '-co2')
+}
+if (exp_pop) {
+  appendix <- paste0(appendix, '-pop')
 }
 saveRDS(map_out, paste0('output/map_', scenario, appendix, '.rds'))

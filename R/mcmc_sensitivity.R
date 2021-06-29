@@ -21,11 +21,12 @@ if (aid == '') {
 }
 
 ## set model run parameters
-data_yrs <- 1820:2014 # years for observational constraints
+data_yrs <- 1820:2019 # years for observational constraints
 ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
 ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
 exp_gwp <- TRUE # do we do probabilistic inversion for average GWP per capita?
 exp_co2 <- TRUE
+exp_pop <- TRUE
 residtype <- 'var'
 ## set fossil fuel penetration windows for coal and renewable penetration
 ## based on data from BP Statistical Review of World Energy
@@ -73,10 +74,10 @@ if (scenario == 'alt_s') {
 
 
 ## read in MAP estimate for that scenario as the initial value as the
-map <- readRDS(paste0('output/map_', scenario, '-gwp-co2.rds'))
+map <- readRDS(paste0('output/map_', scenario, '-gwp-co2-pop.rds'))
 
 ## run MCMC chains (using parallel default)
-mcmc_out <- run_mcmc(log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, init=map$optim$bestmem, n_iter=2e6, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr, exp_gwp=exp_gwp, exp_co2=exp_co2)
+mcmc_out <- run_mcmc(log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, init=map$optim$bestmem, n_iter=2e6, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr, exp_gwp=exp_gwp, exp_co2=exp_co2, exp_pop=exp_pop)
 
 ## save estimate
-saveRDS(mcmc_out, paste0('output/mcmc_', scenario, '-gwp-co2.rds'))
+saveRDS(mcmc_out, paste0('output/mcmc_', scenario, '-gwp-co2-pop.rds'))
