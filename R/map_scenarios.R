@@ -99,7 +99,7 @@ ff_pen_window <- list(cbind(c(0.20, 0.30), c(NA, NA), c(0.10, 0.20)))
 
 
 ## find MAP estimate
-map_out <- find_map(neg_log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, NP_scale=25, n_iter=5000, parallel=TRUE, trace=FALSE, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr, exp_gwp=exp_gwp, exp_co2=exp_co2, exp_pop=exp_pop)
+map_out <- find_map(neg_log_post, parnames=parnames, residtype=residtype, prior_df=prior_df, data_yrs=data_yrs, NP_scale=25, n_iter=10000, parallel=TRUE, trace=FALSE, ff_thresh=ff_thresh, ff_const_yrs=ff_const_yrs, ff_pen_windows=ff_pen_window, ff_pen_yrs=ff_pen_yr, exp_gwp=exp_gwp, exp_co2=exp_co2, exp_pop=exp_pop)
 
 ## save estimate
 ## save estimate
