@@ -43,7 +43,7 @@ NumericVector compute_emis(NumericVector gamma, NumericVector rho) {
 }
 
 double update_emis(double Q, NumericVector phi) {
-  double emis = sum(Q * phi);
+  double emis = Q*sum(phi);
   
   return emis;
 
