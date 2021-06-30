@@ -37,7 +37,7 @@ find_map <- function(post, parnames, residtype, prior_df, data_yrs, n_iter=5e3, 
   ## set DEoptim parameters for MAP estimate
   # set upper and lower bounds for each variable
   lbound <- c(0.0001, 0, 6.9, 0.3, 0.5, 0.1, 0.01, 0.0007, 5.3, 0.4, 0, 0, 0, 1850, 1900, 2030, 0.005, 0, 0, 0, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0, 0, 0)
-  ubound <- c(0.15, 100, 15, 1, 0.9,  0.3, 0.14, 0.0212, 16.11, 0.7, 3, 3, 3, 1970, 2100, 2150, 0.2, 5, 5, 5, 1, 1, 1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 5, 5, 5)
+  ubound <- c(0.15, 100, 15, 1, 0.9,  0.3, 0.14, 0.0212, 16.11, 0.7, 3, 3, 3, 1970, 2050, 2150, 0.2, 10, 10, 10, 1, 1, 1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 10, 10, 10)
 
 
   # if DEoptim is run in parallel, set up cluster and evaluate

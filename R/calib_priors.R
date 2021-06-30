@@ -17,12 +17,12 @@ set_prior_params <- function(parnames) {
     name <- prior_df[i, 'name']
     if (grepl('sigma', name)) {
       prior_df[i, 'type'] <- 'log-normal'
-      prior_df[i, 'lower'] <- qlnorm(0.05, -1, 1)
-      prior_df[i, 'upper'] <- qlnorm(0.95, -1, 1)
+      prior_df[i, 'lower'] <- qlnorm(0.05, 0, 1.5)
+      prior_df[i, 'upper'] <- qlnorm(0.95, 0, 1.5)
     } else if (grepl('eps', name)) {
       prior_df[i, 'type'] <- 'log-normal'
-      prior_df[i, 'lower'] <- qlnorm(0.05, -1, 1)
-      prior_df[i, 'upper'] <- qlnorm(0.95, -1, 1)
+      prior_df[i, 'lower'] <- qlnorm(0.05, 0, 1.5)
+      prior_df[i, 'upper'] <- qlnorm(0.95, 0, 1.5)
     } else if (name == 'psi1') {
       prior_df[i, 'type'] <- 'normal'
       prior_df[i, 'lower'] <- 0.0001
