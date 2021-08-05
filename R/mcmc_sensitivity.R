@@ -3,7 +3,7 @@ rm(list=ls()) # clean up environment
 library(IAMUQ)
 
 source('R/calib_priors.R')
-source('R/compute_fossil_threshold.R')
+source('R/compute_fossil_thresholds.R')
 
 ## set case for this run
 # read in PBS job array index to specify type
