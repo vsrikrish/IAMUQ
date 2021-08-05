@@ -8,7 +8,7 @@ aid <- Sys.getenv('PBS_ARRAYID')
 set.seed(as.numeric(aid))
 
 # load data
-dat <- lapply(iamdata, function(l) l[l$year %in% 1820:2014, ])
+dat <- lapply(iamdata, function(l) l[l$year %in% 1820:2019, ])
 
 # partition data
 hoyrs <- sample(dat[[1]]$year, size=floor(length(dat[[1]]$year)/5), replace=FALSE)
@@ -19,14 +19,14 @@ if (file.exists(mcmc_fname)) {
   mcmc_out <- readRDS(mcmc_fname)
 } else {
   # read in full data MAP estimate as the MCMC initial value
-  map <- readRDS('output/map_base-gwp-co2.rds')$optim$bestmem
+  map <- readRDS('output/map_base-gwp-co2-pop.rds')$optim$bestmem
   parnames <- names(map)
   
   # get prior dataframe
   prior_df <- set_prior_params(parnames)
   
   # run MCMC
-  mcmc_out <- run_mcmc(log_post, parnames=parnames, residtype='var', prior_df=prior_df, data_yrs=1820:2014, init=map, n_iter=2e6, exp_gwp=TRUE, hoyrs=hoyrs)
+  mcmc_out <- run_mcmc(log_post, parnames=parnames, residtype='var', prior_df=prior_df, data_yrs=1820:2019, init=map, n_iter=2e6, exp_gwp=TRUE, exp_pop=TRUE, exp_co2=TRUE, hoyrs=hoyrs)
   
   saveRDS(mcmc_out, paste0('~/scratch/crossval/mcmc-', aid, '.rds'))
 }
