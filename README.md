@@ -4,7 +4,7 @@
 
 IAMUQ (Integrated Assessment Model Uncertainty Quantification) defines a simple integrated assessment model (IAM) and provides scripts for calibration and simulation. This code is intended to accompany
 
-> Srikrishnan, V,  Guan, Y, Tol, RSJ, and Keller, K, 2021. "Probabilistic projections of baseline 21st century CO$_2$ emissions using a simple calibrated integrated assessmentmModel."
+> Srikrishnan, V,  Guan, Y, Tol, RSJ, and Keller, K, 2021. "Probabilistic projections of baseline 21st century CO$_2$ emissions using a simple calibrated integrated assessment model."
 
 This study uses a simple, mechanistically-motivated model, calibrated on century-scale historical data, to generate probabilistic projections of anthropogenic CO<sub>2</sub> emissions through 2100 under several different scenarios. These scenarios are related to deep uncertainties concerning available fossil fuel resources and the rate of global decarbonization. We find that the fossil fuel supply contraints can affect the upper tail of the emissions distribution. These projections make no assumption about future decarbonization or negative emissions trends beyond a continuation of dynamics consistent with historical and current trends, and so considerations of changes to climate policy or technological backsliding will have an effect on the projections.
 
