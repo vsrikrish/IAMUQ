@@ -54,27 +54,27 @@ To install the `IAMUQ` package, first clone the repository. Then, use the follow
 
 The original population, GDP, and CO<sub>2</sub> emissions data can be found in `IAMUQ/inst/extdata`. Code to process this data is provided in `IAMUQ/data-raw/read_data.R`. This code produces `IAMUQ/data/iamdata.rda`, which is loaded by the `IAMUQ` package. The raw population and GDP per capita data are taken from:
 
-> Bolt, Jutta and Jan Luiten van Zanden (2020), Maddison Project Database, version 2020. [“Maddison style estimates of the evolution of the world economy. A new 2020 update ”](https://www.rug.nl/ggdc/historicaldevelopment/maddison/publications/wp15.pdf). URL: `<https://www.rug.nl/ggdc/historicaldevelopment/maddison/releases/maddison-project-database-2020?lang=en> (accessed 07-01-2020)`.
+> Bolt, Jutta and Jan Luiten van Zanden (2020), Maddison Project Database, version 2020. [“Maddison style estimates of the evolution of the world economy. A new 2020 update ”](https://www.rug.nl/ggdc/historicaldevelopment/maddison/publications/wp15.pdf). URL: <https://www.rug.nl/ggdc/historicaldevelopment/maddison/releases/maddison-project-database-2020?lang=en> (accessed 07-01-2020).
 
 To extend this data to 2019, we adjust 2019 GDP PPP from the [World Bank](https://data.worldbank.org/indicator/NY.GDP.MKTP.PP.KD) to 2011 international $ and use 2019 population data from the [United Nations](https://population.un.org/wpp/).
 
 CO<sub>2</sub> emissions data from 1700--1949 are taken from:
 
-> Boden, T. A., Andres, R. J., and Marland, G. 2017. "Global, Regional, and National Fossil-Fuel CO2 Emissions (1751 - 2014) (V. 2017)". doi: `<https://doi.org/10.3334/CDIAC/00001_V2017>`.
+> Boden, T. A., Andres, R. J., and Marland, G. 2017. "Global, Regional, and National Fossil-Fuel CO2 Emissions (1751 - 2014) (V. 2017)". doi: <https://doi.org/10.3334/CDIAC/00001_V2017>.
 
 Emissions data from 1950--2019 are from:
 
-> Friedlingstein, P., O’Sullivan, M., Jones, M.W., Andrew, R.M., Hauck, J., Olsen, A., Peters, G.P., Peters, W., Pongratz, J., Sitch, S., Le Quéré, C., Canadell, J.G., Ciais, P., Jackson, R.B., Alin, S., Aragão, L.E.O.C., Arneth, A., Arora, V., Bates, N.R., Becker, M., Benoit-Cattin, A., Bittig, H.C., Bopp, L., Bultan, S., Chandra, N., Chevallier, F., Chini, L.P., Evans, W., Florentie, L., Forster, P.M., Gasser, T., Gehlen, M., Gilfillan, D., Gkritzalis, T., Gregor, L., Gruber, N., Harris, I., Hartung, K., Haverd, V., Houghton, R.A., Ilyina, T., Jain, A.K., Joetzjer, E., Kadono, K., Kato, E., Kitidis, V., Korsbakken, J.I., Landschützer, P., Lefèvre, N., Lenton, A., Lienert, S., Liu, Z., Lombardozzi, D., Marland, G., Metzl, N., Munro, D.R., Nabel, J.E.M.S., Nakaoka, S.-I., Niwa, Y., O’Brien, K., Ono, T., Palmer, P.I., Pierrot, D., Poulter, B., Resplandy, L., Robertson, E., Rödenbeck, C., Schwinger, J., Séférian, R., Skjelvan, I., Smith, A.J.P., Sutton, A.J., Tanhua, T., Tans, P.P., Tian, H., Tilbrook, B., van der Werf, G., Vuichard, N., Walker, A.P., Wanninkhof, R., Watson, A.J., Willis, D., Wiltshire, A.J., Yuan, W., Yue, X., Zaehle, S., 2020. "Global Carbon Budget 2020". *Earth System Science Data* 12, 3269–3340. doi: `<https://doi.org/10.5194/essd-12-3269-2020>`.
+> Friedlingstein, P., O’Sullivan, M., Jones, M.W., Andrew, R.M., Hauck, J., Olsen, A., Peters, G.P., Peters, W., Pongratz, J., Sitch, S., Le Quéré, C., Canadell, J.G., Ciais, P., Jackson, R.B., Alin, S., Aragão, L.E.O.C., Arneth, A., Arora, V., Bates, N.R., Becker, M., Benoit-Cattin, A., Bittig, H.C., Bopp, L., Bultan, S., Chandra, N., Chevallier, F., Chini, L.P., Evans, W., Florentie, L., Forster, P.M., Gasser, T., Gehlen, M., Gilfillan, D., Gkritzalis, T., Gregor, L., Gruber, N., Harris, I., Hartung, K., Haverd, V., Houghton, R.A., Ilyina, T., Jain, A.K., Joetzjer, E., Kadono, K., Kato, E., Kitidis, V., Korsbakken, J.I., Landschützer, P., Lefèvre, N., Lenton, A., Lienert, S., Liu, Z., Lombardozzi, D., Marland, G., Metzl, N., Munro, D.R., Nabel, J.E.M.S., Nakaoka, S.-I., Niwa, Y., O’Brien, K., Ono, T., Palmer, P.I., Pierrot, D., Poulter, B., Resplandy, L., Robertson, E., Rödenbeck, C., Schwinger, J., Séférian, R., Skjelvan, I., Smith, A.J.P., Sutton, A.J., Tanhua, T., Tans, P.P., Tian, H., Tilbrook, B., van der Werf, G., Vuichard, N., Walker, A.P., Wanninkhof, R., Watson, A.J., Willis, D., Wiltshire, A.J., Yuan, W., Yue, X., Zaehle, S., 2020. "Global Carbon Budget 2020". *Earth System Science Data* 12, 3269–3340. doi: <https://doi.org/10.5194/essd-12-3269-2020>.
 
 CMIP6 Representative Concentration Pathway - Shared Socioeconomic Pathway scenario data was downloaded from the [SSP database](https://tntcat.iiasa.ac.at/SspDb/dsd). The resulting data is available in `data/cmip6_co2.xlsx`.
 
 We also use distributions provided or derived by three expert assessments and probabilistic projections. Those are:
 
-> Christensen, P., Gillingham, K., Nordhaus, W., 2018. "Uncertainty in forecasts of long-run economic growth". *Proc Natl Acad Sci USA* 115, 5409–5414. doi: `<https://doi.org/10.1073/pnas.1713628115>`.
+> Christensen, P., Gillingham, K., Nordhaus, W., 2018. "Uncertainty in forecasts of long-run economic growth". *Proc Natl Acad Sci USA* 115, 5409–5414. doi: <https://doi.org/10.1073/pnas.1713628115>.
 > 
-> Ho, E., Budescu, D.V., Bosetti, V., van Vuuren, D.P., Keller, K., 2019. "Not all carbon dioxide emission scenarios are equally likely: a subjective expert assessment." *Climatic Change* 155, 545–561. doi: `<https://doi.org/10.1007/s10584-019-02500-y>`.
+> Ho, E., Budescu, D.V., Bosetti, V., van Vuuren, D.P., Keller, K., 2019. "Not all carbon dioxide emission scenarios are equally likely: a subjective expert assessment." *Climatic Change* 155, 545–561. doi: <https://doi.org/10.1007/s10584-019-02500-y>.
 > 
-> United Nations, Department of Economic and Social Affairs, Population Division, 2019. Probabilistic Population Projections, Rev. 1, based on the World Population Prospects 2019, Rev. 1. URL: `<https://population.un.org/wpp/Download/Standard/Population/>`
+> United Nations, Department of Economic and Social Affairs, Population Division, 2019. Probabilistic Population Projections, Rev. 1, based on the World Population Prospects 2019, Rev. 1. URL: <https://population.un.org/wpp/Download/Standard/Population/>.
 
 ## Workflow
 
