@@ -115,6 +115,5 @@ The code to generate the plots in Srikrishnan, Guan, Tol, and Keller (2021) is a
 13. Figure S11: `R/plot_proj_sensitivity.R`
 
 ## Contact (corresponding author)
-Vivek Srikrishnan
-
+Vivek Srikrishnan  
 Email: <viveks@cornell.edu>
