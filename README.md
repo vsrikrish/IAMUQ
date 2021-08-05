@@ -71,7 +71,9 @@ CMIP6 Representative Concentration Pathway - Shared Socioeconomic Pathway scenar
 We also use distributions provided or derived by three expert assessments and probabilistic projections. Those are:
 
 > Christensen, P., Gillingham, K., Nordhaus, W., 2018. "Uncertainty in forecasts of long-run economic growth". *Proc Natl Acad Sci USA* 115, 5409–5414. doi: `<https://doi.org/10.1073/pnas.1713628115>`.
+> 
 > Ho, E., Budescu, D.V., Bosetti, V., van Vuuren, D.P., Keller, K., 2019. "Not all carbon dioxide emission scenarios are equally likely: a subjective expert assessment." *Climatic Change* 155, 545–561. doi: `<https://doi.org/10.1007/s10584-019-02500-y>`.
+> 
 > United Nations, Department of Economic and Social Affairs, Population Division, 2019. Probabilistic Population Projections, Rev. 1, based on the World Population Prospects 2019, Rev. 1. URL: `<https://population.un.org/wpp/Download/Standard/Population/>`
 
 ## Workflow
