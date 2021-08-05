@@ -8,7 +8,7 @@ n_samp <- 1e5 # define size of ensemble
 n_boot <- 1e4 # number of bootstrap samples
 
 ## load and combine MCMC output
-mcmc_out <- readRDS('output/mcmc_base-gwp-co2.rds')
+mcmc_out <- readRDS('output/mcmc_base-gwp-co2-pop.rds')
 mcmc_length <- nrow(mcmc_out[[1]]$samples)
 burnin <- 5e5
 post <- do.call(rbind, lapply(mcmc_out[1:4], function(l) l$samples[(burnin+1):mcmc_length,]))
