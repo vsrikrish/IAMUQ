@@ -14,8 +14,8 @@ if (aid == '') {
     exp_assess <- args[2]
   }
 } else {
-  scenarios <- c('iid', 'base', 'short', 'low', 'high', 'del_zc')
-  exp_assess <- c('none', 'gwp', 'co2', 'both')
+  scenarios <- c('iid', 'base', 'short', 'low', 'high', 'del_zc', 'vshort', 'nopen')
+  exp_assess <- c('none', 'gwp', 'co2', 'pop', 'all')
   cases <- expand.grid(scenarios=scenarios, exp=exp_assess)
   id <- as.numeric(aid)
   scenario <- cases[id, 'scenarios']
@@ -24,14 +24,18 @@ if (aid == '') {
 
 exp_gwp <- FALSE
 exp_co2 <- FALSE
+exp_pop <- FALSE
 
 if (exp_assess == 'gwp') {
   exp_gwp <- TRUE
 } else if (exp_assess == 'co2') {
   exp_co2 <- TRUE
-} else if (exp_assess == 'both') {
+} else if (exp_assess == 'pop') {
+  exp_pop <- TRUE
+} else if (exp_assess == 'all') {
   exp_gwp <- TRUE
   exp_co2 <- TRUE
+  exp_pop <- TRUE
 }
 
 appendix <- ''
@@ -41,12 +45,15 @@ if (exp_gwp) {
 if (exp_co2) {
   appendix <- paste0(appendix, '-co2')
 }
+if (exp_pop) {
+  appendix <- paste0(appendix, '-pop')
+}
 
 nsamp <- 1e5 # number of simulations
-yrs <- 2015:2200 # years which the conditional simulation should project
+yrs <- 2020:2200 # years which the conditional simulation should project
 
 # read in data
-dat <- lapply(iamdata, function(l) {l[l$year %in% 1820:2014,]})
+dat <- lapply(iamdata, function(l) {l[l$year %in% 1820:2019,]})
 
 # start cluster
 cl <- makeCluster(detectCores())
