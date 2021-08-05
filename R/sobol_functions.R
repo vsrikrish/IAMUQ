@@ -69,5 +69,5 @@ func_wrap <- function(pars, parnames) {
   # simulate model
   model_out <- run_model(pars, parnames, start=1700, end=2100)
   # call summary function and return
-  do.call(cum_co2, list(emis=model_out$C, yrs=model_out$year, start=2015, end=2100))
+  do.call(cum_co2, list(emis=model_out$C, yrs=model_out$year, start=2020, end=2100))
 }
