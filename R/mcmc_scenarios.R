@@ -16,7 +16,7 @@ if (aid == '') {
     exp_assess <- args[2]
   }
 } else {
-  scenarios <- c('iid', 'base', 'short', 'low', 'high', 'del_zc')
+  scenarios <- c('iid', 'base', 'short', 'low', 'high', 'del_zc', 'vshort', 'nopen')
   exp_assess <- c('none', 'gwp', 'co2', 'pop', 'all')
   cases <- expand.grid(scenarios=scenarios, exp=exp_assess)
   id <- as.numeric(aid)
@@ -47,31 +47,49 @@ if (scenario == 'base') {
   ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var'
+  tech_pen_const <- TRUE
 } else if (scenario == 'short') {
   data_yrs <- 1950:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
+  tech_pen_const <- TRUE
+} else if (scenario == 'vshort') {
+  data_yrs <- 2000:2019
+  ff_thresh <- compute_fossil_threshold('base')
+  ff_const_yrs <- 2012:2500
+  residtype <- 'var'
+  tech_pen_const <- TRUE
 } else if (scenario == 'iid') {
   data_yrs <- 1820:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'iid'
+  tech_pen_const <- TRUE
 } else if (scenario == 'low') {
   data_yrs <- 1820:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('low') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
+  tech_pen_const <- TRUE
 } else if (scenario == 'high') {
   data_yrs <- 1820:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('high') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
+  tech_pen_const <- TRUE
 } else if (scenario == 'del_zc') {
   data_yrs <- 1820:2019 # years for observational constraints
   ff_thresh <- compute_fossil_threshold('base') # fossil fuel constraint in GtC
   ff_const_yrs <- 2012:2500 # years over which fossil fuel constraint is evaluated
   residtype <- 'var' # residual structure type
+  tech_pen_const <- TRUE
+} else if (scenario == 'nopen') {
+  data_yrs <- 1820:2019
+  ff_thresh <- compute_fossil_threshold('base')
+  ff_const_yrs <- 2012:2500
+  residtype <- 'var'
+  tech_pen_const <- FALSE
 }
 
 if (residtype == 'ar') {
@@ -95,8 +113,13 @@ if (scenario == 'del_zc') {
 
 ## set fossil fuel penetration windows for coal and renewable penetration
 ## based on data from BP Statistical Review of World Energy (2019)
-ff_pen_yr <- c(2019)
-ff_pen_window <- list(cbind(c(0.20, 0.30), c(NA, NA), c(0.10, 0.20)))
+if (tech_pen_const) {
+  ff_pen_yr <- c(2019)
+  ff_pen_window <- list(cbind(c(0.20, 0.30), c(NA, NA), c(0.10, 0.20)))
+} else {
+  ff_pen_window <- NA
+  ff_pen_yr <- NA
+}
 
 ## read in MAP estimate for that scenario as the initial value as the
 ## save estimate
