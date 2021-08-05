@@ -5,8 +5,8 @@ source('R/calib_priors.R')
 
 nsamp <- 1e5 # set desired number of samples
 
-scen_labels <- c('Standard', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Carbon', 'No Penetration Constraint')
-scenarios <- c('base', 'low', 'high', 'del_zc', 'nopen')
+scen_labels <- c('1820-2019', '1950-2019', '2000-2019')
+scenarios <- c('base', 'short', 'vshort')
 
 post_samps <- vector('list', length(scenarios))
 names(post_samps) <- scen_labels
@@ -77,15 +77,14 @@ all_melt$Scenario <- factor(all_melt$Scenario, levels=scen_labels)
 p <- ggplot(all_melt) + 
   stat_density(aes(x=value, color=Scenario), geom='line', position='identity') + 
   facet_wrap(vars(Variable), scales='free', labeller=label_parsed, ncol=4) + 
-  scale_color_brewer(palette='Dark2') + 
-  theme(legend.position='bottom', legend.spacing.y=unit(-2, 'mm')) + 
-    scale_y_continuous('Density') + scale_x_continuous('Parameter Value') +
-    guides(color=guide_legend(ncol=3, byrow=TRUE))
+  scale_color_brewer('Calibration Period', palette='Dark2') + 
+  theme(legend.position='bottom') + 
+    scale_y_continuous('Density') + scale_x_continuous('Parameter Value')
   
-pdf(paste0('figures/scenario-dist.pdf'), height=7, width=7)
+pdf(paste0('figures/calibration-dist.pdf'), height=7, width=7)
 print(p)
 dev.off()
   
-png(paste0('figures/scenario-dist.png'), height=7, width=7, res=600, units='in')
+png(paste0('figures/calibration-dist.png'), height=7, width=7, res=600, units='in')
 print(p)
 dev.off()

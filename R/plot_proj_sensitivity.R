@@ -6,13 +6,15 @@ library(gtable)
 library(gridExtra)
 library(dplyr)
 
-yrs <- 2015:2100
+yrs <- 2020:2100
 
-dat <- lapply(iamdata, function(l) {l[l$year %in% 1820:2014,]})
-obs <- dat[['emissions']][dat[['emissions']]$year %in% 2000:2014, ]
+dat <- lapply(iamdata, function(l) {l[l$year %in% 1820:2019,]})
+obs <- dat[['emissions']][dat[['emissions']]$year %in% 2000:2019, ]
 
 scenarios <- c('base', 'alt_multi')
 scen_labels <- c('Default Priors', 'Alternate Priors')
+
+tol9qualitative=c("#88CCEE", "#44AA99", "#117733", "#332288", "#AA4499",  "#CC6677", "#882255", "#6699CC", "#999933")
 
 cbbpsqualitative <- c("#000000", "#e79f00", "#9ad0f3", "#CC79A7", "#0072B2", "#009E73", "#F0E442", "#D55E00")
 
@@ -36,7 +38,7 @@ names(sim_out) <- scenarios
 
 for (scen in scenarios) {
   # read simulation output file
-  sim_out[[scen]] <- readRDS(paste0('output/sim_', scen, '-gwp-co2.rds'))
+  sim_out[[scen]] <- readRDS(paste0('output/sim_', scen, '-gwp-co2-pop.rds'))
 }
 
 emis <- lapply(sim_out, get_emissions, yrs=yrs)
@@ -52,7 +54,7 @@ co2_2100$case <- factor(co2_2100$scenario, levels=scenarios, labels=scen_labels,
 p_series <- ggplot() + geom_ribbon(data=co2_q, 
                                    aes(x=Year, ymin=lower, ymax=upper, fill=case), color=NA, alpha=0.3) + 
   geom_point(data=obs, aes(x=year, y=value), color='black', size=1) + 
-  scale_y_continuous(expression(CO[2]~Emissions~(Gt~C/yr)), limits=c(0, 40), expand=c(0, 0)) + 
+  scale_y_continuous(expression(CO[2]~Emissions~(Gt~CO[2]/yr)), limits=c(0, 50), expand=c(0, 0)) + 
   scale_color_manual('Emissions Scenario', values=tol9qualitative) + 
   scale_linetype_discrete('Marker') + 
   scale_fill_manual('Model Scenario', values=cbbpsqualitative) + 

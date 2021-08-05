@@ -7,22 +7,22 @@ library(RColorBrewer)
 library(readxl)
 library(reshape2)
 
-yrs <- 2015:2100
+yrs <- 2020:2100
 
 get_variable <- function(sim_out, var) {
   do.call(cbind, lapply(sim_out, function(l) l$out[,var]))
 }
 
 # read simulation output file
-sim_out <- readRDS('output/sim_base-gwp-co2.rds')
+sim_out <- readRDS('output/sim_base-gwp-co2-pop.rds')
 
 pop <- get_variable(sim_out, var='P')
 gwp <- get_variable(sim_out, var='Q')
 emis <- get_variable(sim_out, var='C')
 
-avg_pc_gwp <- avg_gwp_rate(pop, gwp, yrs=2015:2100, start=2018)*100
-avg_c_intens <- avg_gwp_rate(gwp, emis, yrs=2015:2100, start=2018)*100
-co2_cum <- cum_co2(emis, yrs=2015:2100, start=2018)
+avg_pc_gwp <- avg_gwp_rate(pop, gwp, yrs=2020:2100, start=2020)*100
+avg_c_intens <- avg_gwp_rate(gwp, emis, yrs=2020:2100, start=2020)*100
+co2_cum <- cum_co2(emis, yrs=2020:2100, start=2020)
 
 dat <- data.frame(GWP=avg_pc_gwp, CI=avg_c_intens, CO2=co2_cum)
 dat$CI <- -1*dat$CI
@@ -34,9 +34,9 @@ ssp_gwp <- as.data.frame(read_excel('data/ssp_pc_gwp.xlsx')[c(1,3:5), c(2,8,16)]
 ssp_gwp$rate <- (exp((log(ssp_gwp[,3]) - log(ssp_gwp[,2]))/(2100-2020)) - 1) * 100
 ssp_names <- c('SSP3-7.0', 'SSP4-6.0', 'SSP2-4.5', 'SSP5-8.5')
 ssp_dat <- data.frame(SSP=ssp_names, CI=-1*ssp_ci$rate, GWP=ssp_gwp$rate)
-ssp_dat$hoff <- c(0.2, 0, 0, 0)
+ssp_dat$hoff <- c(-0.2, 0, -0.6, 0)
 ssp_dat$hpos <- ssp_dat$CI + ssp_dat$hoff
-ssp_dat$voff <- c(-0.5, -0.5, -0.5, 0.5)
+ssp_dat$voff <- c(0.5, -0.5, -0.3, 0.5)
 ssp_dat$vpos <- ssp_dat$GWP + ssp_dat$voff
 ssp_dat$arrstart <- ssp_dat$vpos - ssp_dat$voff / 5
 ssp_dat$arrend <- ssp_dat$GWP + ssp_dat$voff / 5
@@ -81,14 +81,14 @@ scatplot <- ggplot(dat[dat$CO2 < 3000,], aes(x=CI, y=GWP)) +
   stat_summary_2d(aes(z=CO2), fun=mean, binwidth=0.075) +
   geom_contour(data=dc, aes(x=Var1, y=Var2, z=prob), breaks=prob, color='grey', alpha=0.8) +
   geom_point(data=md, aes(x=Var1, y=Var2), color='grey', size=2) +
-  geom_text(data=md, aes(x=Var1, y=Var2+0.5), color='black', label='Posterior Mode', size=3) +
-  geom_segment(data=md, aes(x=Var1, xend=Var1, y=Var2+0.4, yend=Var2+0.1),
+  geom_text(data=md, aes(x=Var1+0.75, y=Var2), color='black', label='Posterior\nMode', size=3) +
+  geom_segment(data=md, aes(x=Var1+0.4, xend=Var1+0.1, y=Var2, yend=Var2),
                size=1, arrow=arrow(length=unit(0.5, 'mm'), type='closed'), 
                color='black', arrow.fill='black') +
   geom_abline(slope=1, intercept=0, linetype='dotted') +
   geom_point(data=ssp_dat, aes(x=CI, y=GWP), color='black', size=2) +
   geom_text(data=ssp_dat, aes(x=hpos, y=vpos, label=SSP), size=3) +
-  geom_segment(data=ssp_dat, aes(x=hpos, xend=CI+c(0.05, 0, 0, 0), y=arrstart, yend=arrend),
+  geom_segment(data=ssp_dat, aes(x=hpos, xend=CI+c(-0.05, 0, -0.1, 0), y=arrstart+c(0, 0, 0.05, 0), yend=arrend),
                size=1, arrow=arrow(length=unit(0.5, 'mm'), type='closed')) +
   theme_classic(base_size=10) +
   scale_x_continuous('Rate of Carbon Intensity Decrease 2018-2100 (%)', limits=c(-1.5, 5.5), expand=c(0, 0)) +

@@ -19,13 +19,13 @@ ssp_cum <- apply(ssp_dat[,-1], 1, function(s) approx(x=as.numeric(colnames(ssp_d
 ssp_cum <- lapply(ssp_cum, function(l) sum(l$y))
 names(ssp_cum) <- ssp_dat[,'Scenario']
 ssp_cum_melt <- melt(ssp_cum)
-ssp_cum_melt$value <- ssp_cum_melt$value / (3.67 * 1000)
+ssp_cum_melt$value <- ssp_cum_melt$value / 1000
 colnames(ssp_cum_melt)[2] <- 'Scenario'
 
 ssp_melt <- melt(ssp_dat, id.vars=c('Scenario'))
 colnames(ssp_melt)[2] <- 'Year'
 ssp_melt[, 'Year'] <- as.numeric(levels(ssp_melt[, 'Year']))[ssp_melt[, 'Year']]
-ssp_melt[, 'value'] <- ssp_melt[, 'value'] / (3.67 * 1000)
+ssp_melt[, 'value'] <- ssp_melt[, 'value'] / 1000
 ssp_melt <- ssp_melt[ssp_melt$Year == 2100, ]
 
 
@@ -52,19 +52,20 @@ names(sim_out) <- scenarios
 
 for (scen in scenarios) {
   # read simulation output file
-  sim_out[[scen]] <- readRDS(paste0('output/sim_', scen, '-gwp-co2.rds'))
+  sim_out[[scen]] <- readRDS(paste0('output/sim_', scen, '-gwp-co2-pop.rds'))
 }
 
 emis <- lapply(sim_out, get_emissions)
 
-co2_2100 <- lapply(emis, emis_dist, yrs=2015:2100, yr=2100)
+co2_2100 <- lapply(emis, emis_dist, yrs=2020:2100, yr=2100)
 co2_2100 <- bind_rows(co2_2100, .id='scenario')
 co2_2100$case <- factor(co2_2100$scenario, levels=scenarios, labels=scen_labels)
 
-co2_cum <- lapply(emis, cum_co2, yrs=2015:2100, start=2018)
+co2_cum <- lapply(emis, cum_co2, yrs=2020:2100, start=2020)
 co2_cum <- lapply(co2_cum, function(l) data.frame(value=l))
 co2_cum <- bind_rows(co2_cum, .id='scenario')
 co2_cum$case <- factor(co2_cum$scenario, levels=scenarios, labels=scen_labels)
+co2_cum$value <- co2_cum$value + iamdata$emissions[iamdata$emissions$year %in% c(2018, 2019), 'value']
 
 cbbpsqualitative <- c("#000000", "#e79f00", "#9ad0f3", "#CC79A7", "#0072B2", "#009E73", "#F0E442", "#D55E00")
 
@@ -80,7 +81,7 @@ tol9qualitative=c("#88CCEE", "#332288", "#117733", "#44AA99", "#AA4499",  "#CC66
 #geom_text(data=ssp_cum_melt, aes(x=value, y=1, label=Scenario), angle=90, size=2.5, fontface='bold', nudge_x=c(-40, 40, 40, -40, -40, -40, -40), 
 #          nudge_y=ifelse(ssp_cum_melt$value <= 1000, -0.05, -0.9)) + 
 
-budget <- 1500 / 3.67
+budget <- 1500
 
 ssp_vjust <- c(-1, 1, 1, 1, -1, -1.25, 0)  
 ssp_hjust <- c(0, -0.45, -0.5, 0.25, 0, -0.4, 0)
@@ -89,7 +90,7 @@ p <- ggplot() +
   geom_rect(data=data.frame(xmin=0, xmax=budget, ymin=0, ymax=1), aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), fill='darkgreen', alpha=0.2) +
   geom_vline(data=ssp_cum_melt, aes(xintercept=value), linetype='solid', color='grey') + 
   stat_ecdf(data=co2_cum, aes(x=value, color=case))  + 
-  scale_x_continuous(expression(CO[2]~Emissions~'from'~2018~'-'~2100~(Gt~C)), limits=c(0, 2500), expand=c(0, 0)) + 
+  scale_x_continuous(expression(CO[2]~Emissions~'from'~2018~'-'~2100~(Gt~CO[2])), limits=c(0, 8000), expand=c(0, 0)) + 
   scale_y_continuous('Cumulative Probability', expand=c(0, 0),
                      labels=function(x) ifelse(x==as.integer(x), as.character(round(x)), as.character(round(x, 2)))) + 
   scale_color_manual('Model\nScenario', values=cbbpsqualitative) + 
@@ -119,9 +120,9 @@ for (i in 1:nrow(ssp_cum_melt)) {
 }
 
 p <- p + annotation_custom(grob=grid::linesGrob(arrow=grid::arrow(type='open', ends='first', length=unit(3, 'mm')), gp=gpar(col='blue')),
-                           xmin=500, xmax=2000, ymin=1.22, ymax=1.22)
+                           xmin=2000, xmax=6000, ymin=1.22, ymax=1.22)
 p <- p + annotation_custom(grob=grid::textGrob(label=expression('Increasing Probability of Achieving 2'*degree*C~'Target'), gp=gpar(col='blue', fontsize=8)),
-                           xmin=1000, xmax=1500, ymin=1.27, ymax=1.27)
+                           xmin=2500, xmax=5500, ymin=1.27, ymax=1.27)
 
 
 p <- p + coord_cartesian(clip = "off")

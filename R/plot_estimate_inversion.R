@@ -5,8 +5,8 @@ source('R/calib_priors.R')
 
 nsamp <- 1e5 # set desired number of samples
 
-appendices <- c('', '-gwp', '-co2', '-gwp-co2')
-app_names <- c('None', 'Christensen et al (2018)', 'Ho et al (2019)', 'Both')
+appendices <- c('', '-gwp', '-co2', '-pop', '-gwp-co2-pop')
+app_names <- c('None', 'Christensen et al (2018)', 'Ho et al (2019)', 'United Nations (2019)', 'All')
 
 scenarios <- c('base', 'low', 'high', 'del_zc')
 

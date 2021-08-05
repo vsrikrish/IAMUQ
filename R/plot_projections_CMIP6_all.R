@@ -16,12 +16,12 @@ ssp_dat <- ssp_dat[, c(2, 6:(ncol(ssp_dat)-2))]
 ssp_melt <- melt(ssp_dat, id.vars=c('Scenario'))
 colnames(ssp_melt)[2] <- 'Year'
 ssp_melt[, 'Year'] <- as.numeric(levels(ssp_melt[, 'Year']))[ssp_melt[, 'Year']]
-ssp_melt[, 'value'] <- ssp_melt[, 'value'] / (3.67 * 1000)
+ssp_melt[, 'value'] <- ssp_melt[, 'value'] /1000
 
-yrs <- 2015:2100
+yrs <- 2020:2100
 
-dat <- lapply(iamdata, function(l) {l[l$year %in% 1820:2014,]})
-obs <- dat[['emissions']][dat[['emissions']]$year %in% 2000:2014, ]
+dat <- lapply(iamdata, function(l) {l[l$year %in% 1820:2019,]})
+obs <- dat[['emissions']][dat[['emissions']]$year %in% 2000:2019, ]
 
 tol9qualitative=c("#88CCEE", "#44AA99", "#117733", "#332288", "#AA4499",  "#CC6677", "#882255", "#6699CC", "#999933")
 
@@ -30,8 +30,9 @@ cbbpsqualitative <- c("#000000", "#e79f00", "#9ad0f3", "#CC79A7", "#0072B2", "#0
 scenarios <- c('base', 'low', 'high', 'del_zc')
 scen_labels <- c('Standard', 'Low Fossil Fuel', 'High Fossil Fuel', 'Delayed Zero-Carbon')
 
-appendices <- c('', '-gwp', '-co2', '-gwp-co2')
-app_names <- c('None', 'GWP', 'CO[2]', 'GWP and CO[2]')
+appendices <- c('', '-gwp', '-co2', '-pop', '-gwp-co2-pop')
+app_names <- c('None', 'Economic~Growth', 'CO[2]~Emissions', 'Population', 'All')
+app_titles <- parse(text=app_names)
 
 get_emissions <- function(sim_out, yrs) {
   do.call(cbind, lapply(sim_out, function(l) l$out$C[l$out$year %in% yrs]))
@@ -49,6 +50,7 @@ emis_dist <- function(emis, yr) {
 }
 
 p <- vector('list', length(appendices))
+tmarg <- c(16.5, 16.5, 17.5, 17.5, 16.5) # set top margins for the marginal plot; this changes based on the types of characters in the plot titles
 
 for (i in 1:length(appendices)) {
   sim_out <- vector('list', length(scenarios))
@@ -73,7 +75,7 @@ for (i in 1:length(appendices)) {
                                      aes(x=Year, ymin=lower, ymax=upper, fill=case), color=NA, alpha=0.3) + 
     geom_line(data=ssp_melt, aes(x=Year, y=value, color=Scenario)) +  
     geom_point(data=obs, aes(x=year, y=value), color='black', size=1) + 
-    scale_y_continuous(expression(CO[2]~Emissions~(Gt~C/yr)), limits=c(0, 40), expand=c(0, 0)) + 
+    scale_y_continuous(expression(CO[2]~Emissions~(Gt~CO[2]/yr)), limits=c(0, 120), expand=c(0, 0), sec.axis=sec_axis(~., labels=NULL)) + 
     scale_color_manual('Emissions Scenario', values=tol9qualitative) + 
     scale_linetype_discrete('Marker') + 
     scale_fill_manual('Model Scenario', values=cbbpsqualitative) + 
@@ -84,19 +86,19 @@ for (i in 1:length(appendices)) {
           legend.key.size=unit(0.5, 'cm'), legend.margin=margin(c(0.5, 0, 0, 0))) + 
     guides(color = guide_legend(order=1, ncol=2, byrow=FALSE, override_aes=list(size=5)), 
            linetype = guide_legend(order=2), fill = guide_legend(order=3, nrow=2, byrow=FALSE)) +
-    labs(tag=letters[i])
+    labs(tag=letters[i]) + ggtitle(app_titles[i])
   
   p_marg <- ggplot() + stat_density(data=co2_2100, 
                                     aes(x=value, fill=case, color=case), geom='line', 
                                     position='identity') + 
-    scale_x_continuous(limits=c(0, 40), expand=c(0, 0)) + 
+    scale_x_continuous(limits=c(0, 120), expand=c(0, 0)) + 
     scale_y_continuous(expand=c(0, 0)) + 
     coord_flip() + 
     scale_fill_manual('', values=cbbpsqualitative) + 
     scale_color_manual('', values=cbbpsqualitative) + 
     theme_classic(base_size=10) +
-    theme(axis.text.y=element_blank(), axis.title.y=element_blank(), axis.ticks.y=element_blank(), 
-          panel.border=element_blank(), plot.margin=unit(c(7, 1, 13.2, -0.05), 'mm'), 
+    theme(axis.text.y=element_blank(), axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.line=element_blank(),  
+          panel.border=element_blank(), plot.margin=unit(c(tmarg[i], 1, 12.5, -0.3), 'mm'), 
           axis.title.x=element_blank(), axis.ticks.x=element_blank(), axis.text.x=element_blank(), 
           axis.line.x=element_blank(), legend.position='none')
   
@@ -104,22 +106,20 @@ for (i in 1:length(appendices)) {
                   grobs=list(ggplotGrob(p_series + theme(legend.position='none')), 
                              ggplotGrob(p_marg)), height=unit(3, 'in'), widths=unit(c(2.7, 0.8), 'in'), 
                   z=c(2,1))
-}  
+
+}
   
 # extract legend from time series plot
-g <- ggplotGrob(p_series)$grobs
-legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-lheight <- sum(legend$height)
-lwidth <- sum(legend$width)
+g <- ggplot_gtable(ggplot_build(p_series))
+legidx <- which(sapply(g$grobs, function(x) x$name) == "guide-box")
+legend <- g$grobs[[legidx]]
 
-fig <- arrangeGrob(arrangeGrob(grobs=p, nrow=2, ncol=2), legend, ncol=1,
-                   heights=unit.c(unit(1, 'npc') - lheight, lheight)
-)
+fig <- arrangeGrob(p[[1]], p[[2]], p[[3]], p[[4]], p[[5]], legend, nrow=3, ncol=2)
 
-pdf('figures/emissions-all-expert.pdf', height=7, width=7)
+pdf('figures/emissions-all-expert.pdf', height=8, width=7)
 grid.draw(fig)
 dev.off()
 
-png('figures/emissions-all-expert.png', height=7, width=7, units='in', res=300)
+png('figures/emissions-all-expert.png', height=8, width=7, units='in', res=300)
 grid.draw(fig)
 dev.off()

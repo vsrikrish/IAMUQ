@@ -5,7 +5,7 @@ source('R/calib_priors.R')
 
 nsamp <- 1e5 # set desired number of samples
 
-mcmc_out <- readRDS('output/mcmc_base-gwp-co2.rds')
+mcmc_out <- readRDS('output/mcmc_base-gwp-co2-pop.rds')
 mcmc_length <- nrow(mcmc_out[[1]]$samples)
 burnin <- 5e5
 post <- do.call(rbind, lapply(mcmc_out[1:4], function(l) l$samples[(burnin+1):mcmc_length,]))
