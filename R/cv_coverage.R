@@ -18,15 +18,22 @@ coverage <- function(q, dat) {
 }
 
 cv_sim <- list.files(path='~/scratch/crossval', pattern='sim*', full.names=TRUE)
-
-sim_out <- lapply(cv_sim, readRDS)
-
 dat <- iamdata
 outnames <- c('P', 'Q', 'C')
 
-for (i in 1:length(dat)) {
-  out <- lapply(sim_out, get_output, output=outnames[i])
-  q <- lapply(out, compute_q)
-  cov <- unlist(lapply(q, coverage, dat=dat[[i]]))
-  print(mean(cov))
+cov <- vector('list', length=length(outnames))
+for (i in 1:length(cov)) {
+  cov[[i]] <- numeric(length(cv_sim))
 }
+
+for (j in 1:length(cv_sim)) {
+  sim_out <- readRDS(cv_sim[j])
+  for (i in 1:length(dat)) {
+    out <- get_output(sim_out, output=outnames[i])
+    q <- compute_q(out)
+    cov[[i]][j] <- coverage(q, dat=dat[[i]])
+  }
+}
+
+print(unlist(lapply(cov, mean)))
+  
