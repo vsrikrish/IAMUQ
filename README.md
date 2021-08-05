@@ -102,7 +102,7 @@ The code to generate the plots in Srikrishnan, Guan, Tol, and Keller (2021) is a
 2. Figure 2: `R/plot_projections_CMIP6.R`
 3. Figure 3: `R/plot_cdf.R`
 4. Figure 4: `R/plot_hindcast_length.R`
-5. Figure 5: R/sobol_plot.R
+5. Figure 5: `R/sobol_plot.R`
 6. Figures S1 and S6: `R/plot_tech_shares.R`
 5. Figure S2: `R/plot_post_scenario.R`
 6. Figure S3: `R/plot_projections_CMIP6_all.R`
@@ -116,4 +116,5 @@ The code to generate the plots in Srikrishnan, Guan, Tol, and Keller (2021) is a
 
 ## Contact (corresponding author)
 Vivek Srikrishnan
+
 Email: <viveks@cornell.edu>
